@@ -1,7 +1,7 @@
 # task-driven-harness
 
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](LICENSE)
-[![Version](https://img.shields.io/badge/version-0.1.0-blue.svg)](CHANGELOG.md)
+[![Version](https://img.shields.io/badge/version-0.1.1-blue.svg)](CHANGELOG.md)
 
 Claude Code에서 **리더(메인 세션)가 `orchestration` 스킬로 사용자의 요청을 분석·계획하고, task로 나눠 서브에이전트에 분배하고, 산출물로 완료를 판정하는 하네스**다.
 
@@ -98,7 +98,7 @@ Claude Code에서 **리더(메인 세션)가 `orchestration` 스킬로 사용자
 
 | 스킬 | 한 줄 |
 |---|---|
-| `spec-authoring` | 뒤에서 만들 사람이 결정을 내리지 않게 쓴다 — PRD, 기능 명세(FSD), 용어집, 외부 독자용 레퍼런스 |
+| `spec-authoring` | 뒤에서 만들 사람이 결정을 내리지 않게 쓴다 — PRD(요구사항 정의서), 기능 명세서(FSD), 용어집, 외부 독자용 레퍼런스 |
 | `interface-contract` | 계약을 먼저 확정하고, 양쪽은 계약에 대조한다 — 둘 이상의 task가 공유하는 교환 규격, API 스펙, 이벤트 형식, 에러 코드 표 |
 | `research` | 주장마다 출처를, 비교에는 축을 붙인다 — 조사·벤치마크 문서. 문서가 남고 리뷰를 받는다 |
 | `backend-work` | 계약대로 동작하고 명세대로 검증한다 — API·서버 로직·저장소 접근의 구현. 구조·계약·데이터 모델 설계는 하지 않는다 |
@@ -121,7 +121,7 @@ Claude Code에서 **리더(메인 세션)가 `orchestration` 스킬로 사용자
 
 | 뿌리 | 무엇 | 수명 |
 |---|---|---|
-| `docs/` | 사용자가 받는 산출물과 결정 기록 (PRD·명세·조사·구조·ADR·계약·설계·QA·운영·run 보고서) | 프로젝트와 같이 |
+| `docs/` | 사용자가 받는 산출물과 결정 기록 (PRD·FSD·조사·구조·ADR·계약·설계·QA·운영·run 보고서) | 프로젝트와 같이 |
 | `_tasks/<run>/` | 이 run의 진행 기록 (`tasks.json` 원장, `notes.md`, `reports/`, `reviews/`, `critique/`) | run |
 
 run 종료 시 리더가 `_tasks/`의 가정·waive·미검증을 `docs/`로 승격한다.
