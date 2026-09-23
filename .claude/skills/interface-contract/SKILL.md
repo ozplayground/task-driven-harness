@@ -14,38 +14,9 @@ description: 둘 이상의 task가 공유하는 계약을 정의하는 방법. �
 5. **없는 것을 없다고 적는다.** 페이지네이션 없음, 정렬 없음, 인증 없음.
 6. **바꾸면 버전을 올리고 영향을 적는다.** 이 계약을 이미 쓴 산출물이 있으면 다시 봐야 한다는 것을 보고에 올린다.
 
-## API 스펙 골격
+## API 스펙
 
-```markdown
-# <이름> 교환 규격 v1
-
-## 공통
-- 기본 경로: /api/v1
-- 필드 표기: camelCase
-- 날짜: ISO 8601, UTC
-- 인증: Bearer 토큰 / 없음
-- 페이지네이션: ?page=1&size=20 → { items, total, page, size } / 없음
-- 에러 형식: { "error": { "code": "ORDER_NOT_FOUND", "message": "..." } }
-
-## 에러 코드
-| 코드 | HTTP | 언제 |
-|---|---|---|
-| VALIDATION_FAILED | 400 | 입력 검증 실패. details에 필드별 |
-| ORDER_NOT_FOUND | 404 | 없는 id |
-
-## GET /orders
-- 목적: 주문 목록
-- 요청: ?status=paid&page=1&size=20
-- 응답 200:
-  { "items": [ { "id": "ord_1", "status": "paid", "total": 12000, "createdAt": "2026-09-14T12:00:00Z" } ], "total": 1, "page": 1, "size": 20 }
-- 에러: VALIDATION_FAILED (size > 100)
-
-## POST /orders
-- 요청: { "items": [ { "productId": "p_1", "qty": 2 } ] }
-- 검증: items 1개 이상, qty 1~99
-- 응답 201: { "id": "ord_2", "status": "created", ... }
-- 에러: VALIDATION_FAILED, PRODUCT_NOT_FOUND
-```
+문서 템플릿 `api.md`로 쓴다.
 
 ## 공유 타입·스키마일 때
 
