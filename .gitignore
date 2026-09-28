@@ -1,3 +1,4 @@
 harness-conversation_*.md
 _tasks/
 .DS_Store
+__pycache__/
