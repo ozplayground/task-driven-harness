@@ -37,13 +37,11 @@ description: run과 task의 산출물을 git으로 다루는 방법. task마다 
 <type>: <한 줄 요약>
 
 <본문 — 왜 (선택)>
-
-Task: <run>/<task>
 ```
 
-type은 `feat` `fix` `docs` `test` `ci` `build` `refactor` `chore` `merge`(머지 커밋) `sync`(내려 주기 머지 커밋). 재작업 커밋은 본문에 `Rework: T2-F1, T2-F3`처럼 고친 지적 번호를 적는다. `git log --grep="Task: order-page"`로 그 run의 커밋을 찾는다.
+type은 `feat` `fix` `docs` `test` `ci` `build` `refactor` `chore` `merge`(머지 커밋) `sync`(내려 주기 머지 커밋).
 
-한 줄 요약은 50자 안이고 무엇이 바뀌었는지만 말한다. "주문 조회 API 추가", "결제 재시도 설계". 작업 경위, 라운드, 지적 번호 목록, 괄호 안 나열, "사람이 읽게 다시 씀" 같은 말은 넣지 않는다. 경위가 필요하면 본문에 한두 문장. ID는 `Task:`와 `Rework:` 꼬리표에만 있다.
+한 줄 요약은 50자 안이고 무엇이 바뀌었는지만 말한다. "주문 조회 API 추가", "결제 재시도 설계". 작업 경위, 라운드, 지적 번호, task ID, run 이름, 괄호 안 나열, "사람이 읽게 다시 씀" 같은 말은 어디에도 넣지 않는다. 꼬리표도 없다. 경위가 필요하면 본문에 한두 문장. 어느 run·task의 커밋인지는 브랜치 이름(`feature/<run>/<task>`)과 머지 커밋이 말한다. `git log --first-parent feature/<run>`으로 task 단위 이력을, `git log feature/<run>..feature/<run>/<task>`로 task 안의 커밋을 본다.
 
 ## 리더 작업
 
@@ -60,23 +58,23 @@ git switch -c feature/<run>
 
 산출물 task마다 워크트리를 만들고 그 경로를 브리프의 작업 위치로 준다. 재작업 task는 대상 task의 워크트리를 그대로 쓰고, 그 사이 `feature/<run>`이 바뀌었으면 내려 준다. 리뷰·비평 task는 워크트리를 만들지 않는다.
 
+**워크트리를 만들면 의존성 설치까지가 한 절차다.** 새 워크트리는 빈 환경이다. 로컬 실행 문서(`docs/dev/setup.md`)의 설치 명령을 선택 의존성까지 포함해 돌리고, 기준선 테스트를 한 번 돌려 초록인지 확인한 뒤 브리프를 던진다. 이걸 빼면 선택 의존성이 필요한 테스트가 깨지고, 그것을 코드 결함으로 오해해 task가 하나 더 생긴다.
+
 ```bash
 git worktree add -b feature/<run>/<task> .worktrees/<task> feature/<run>
-git -C .worktrees/<task> merge --no-ff feature/<run> -m "sync: <무엇을> 내려받음
-
-Task: <run>/<task>"
+git -C .worktrees/<task> merge --no-ff feature/<run> -m "sync: <무엇을> 내려받음"
+(cd .worktrees/<task> && <설치 명령 — 예: uv sync --all-extras / npm ci / pip install -e ".[dev]"> && <테스트 명령>)
 ```
 
 ### task 완료 — 검사와 머지
 
-리뷰어는 3-dot diff로 그 task의 기여만 본다. 리더는 리뷰 task가 confirmed로 끝나고(문서면 critic 무이의까지) open finding이 없을 때 머지한다.
+리뷰어는 3-dot diff로 그 task의 기여만 본다. 리더는 보고서 확인(소유 경로, 증거 수준, 코드면 직접 돌린 테스트, 문서면 `docs-lint.py docs`)이 끝나면 머지한다. 판정 task(비평·리뷰)가 끝나기를 기다리지 않는다. 문서의 첫 판이 `feature/<run>`에 있어야 뒤 task가 읽는다. 판정 뒤 재작업이 생기면 같은 task 브랜치에 이어 커밋하고 다시 머지한다.
 
 ```bash
 git diff --name-only feature/<run>...feature/<run>/<task>     # 소유 경로 밖 파일이 있으면 머지하지 않는다
 git diff feature/<run>...feature/<run>/<task>                 # 리뷰어가 보는 내용
-git merge --no-ff feature/<run>/<task> -m "merge: <task> — <요약>
-
-Task: <run>/<task>"
+python3 .claude/skills/design-docs/scripts/docs-lint.py docs .worktrees/<task>/docs   # 문서가 있으면
+git merge --no-ff feature/<run>/<task> -m "merge: <요약>"
 ```
 
 머지 충돌은 소유 경로가 겹쳤다는 신호다. 풀지 말고 원장의 경로 검사로 돌아간다.

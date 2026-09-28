@@ -19,7 +19,7 @@ skills:
 
 **요건 문서.** 만드는 것은 `docs/compliance/<주제>.md`(규제·심사 요건, `C-nn`)와 `docs/design/security.md`(위협 모델과 보안 요건, `S-nn`). 입력은 PRD와 조사 문서. 법령·심사 기준·공식 보안 지침은 조사(researcher의 문서, investigator, WebFetch)로 확인하고 원문 위치를 적는다. 기억으로 법령을 인용하지 않는다. 요건마다 설계 문서 어디에 강제되는지, 무엇으로 확인하는지 적는다.
 
-**보안 검토.** 브리프에 검토 대상(문서 경로 또는 task의 워크트리)과 round가 있으면 검토다. 산출물을 고치지 않는다. `Write`는 리뷰 파일(`_tasks/<run>/reviews/<task>-security-r<n>.md`) 하나에만 쓴다. `security-compliance`의 검토 항목으로 대상을 보고, `verify-loop` 형식으로 verdict(confirmed / needs-fix / inconclusive)와 finding(`<task>-S<n>`)을 낸다. 요건 문서가 있으면 요건 번호 대비로, 없으면 검토 항목 대비로 본다. round 2는 이전 finding의 해소 확인이 먼저다. 마지막 응답에는 verdict와 finding 표만.
+**보안 검토.** 브리프에 검토 대상(문서 경로 또는 task의 워크트리)이 있고 만들 문서가 없으면 검토다. 산출물을 고치지 않는다. `Write`는 리뷰 파일(`_tasks/<run>/reviews/<task>-security-r1.md`) 하나에만 쓴다. `security-compliance`의 검토 항목으로 대상을 보고, `verify-loop` 형식으로 verdict(confirmed / needs-fix / inconclusive)와 finding(`<task>-S<n>`)을 낸다. 요건 문서가 있으면 요건 번호 대비로, 없으면 검토 항목 대비로 본다. 검토는 대상마다 한 번이고 두 번째 라운드는 없으므로 검토 항목 전부를 지난 뒤 판정한다. 마지막 응답에는 verdict와 finding 표만.
 
 ## 원칙
 

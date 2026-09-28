@@ -4,6 +4,12 @@
 
 **트리거:** 파일을 바꾸거나 산출물(코드·문서·설정)을 만드는 요청은 규모와 무관하게 `orchestration` 스킬을 사용한다. 후속 요청("다시", "이어서", "T3만", "리뷰 반영")도 같다. 단순 질문·설명은 직접 답한다.
 
+**대화 중에는 답만 한다.** 사용자가 묻거나 말하는 중에는 파일 수정·커밋·푸시를 하지 않는다. 대답이 도구 호출보다 먼저다. 하라고 한 일만, 지시를 받은 뒤에 한다. 에이전트 보고를 사용자에게 옮기기 전에 파일로 확인한다. "고쳤다"고 기록하기 전에 파일을 연다.
+
 **리더:** 메인 세션. `orchestration` 스킬로 요청을 분석하고, task로 나눠 계획을 세우고, 각 task를 그 task의 에이전트에 분배하고, 산출물로 완료를 판정하고, 비평·리뷰·재작업 task를 만들어 잇는다. 산출물은 직접 만들지 않는다. run을 시작하고 끝낼 때 `git-workflow`를, 무인 모드일 때 `unattended`를, 끝에 남은 버그를 모아 처리할 때 `bugfix-followup`을 쓴다.
 
-**에이전트:** task 종류 하나에 에이전트 하나. 만드는 쪽은 researcher, architect, spec-writer, ux-designer, contract-designer, security, backend-developer, frontend-developer, devops, verifier. 판정하는 쪽은 critic(문서 비평·계획 비판), doc-reviewer(문서 리뷰), code-reviewer(코드 리뷰), security(보안 검토). investigator는 누구나 부르는 읽기 전용 조사자. 구조 결정은 architect의 추천과 사용자의 확정으로 간다. 문서가 나올 때마다 critic이 내용을 비평하고 doc-reviewer가 기준을 판정한다. 문서의 위치·이름·템플릿은 `design-docs` 스킬 한 곳에만 있다. 리더가 `docs/` 문서(run 보고서, 문서 지도)를 쓸 때는 `humanizer`를 따른다.
+**판정은 한 번, 재작업도 한 번.** 새 문서의 첫 판에 critic 비평과 doc-reviewer 리뷰를 각각 한 번 붙이고, 지적은 재작업 한 번으로 전부 반영하고, 두 번째 판정은 없다. 코드는 테스트·타입 검사·린트 통과가 판정이고, 코드 리뷰·보안 검토는 사용자가 요구했거나 보안 경계 코드일 때만 한 번이다. 원장(`ledger.py`)이 두 번째 판정·재작업의 등록을 거부한다. 구현은 구조 결정이 확정되고 입력 문서의 첫 판이 있으면 시작하며, 구현 중에는 문서를 고치지 않고 run 끝의 문서 정합 task가 한 번에 맞춘다.
+
+**`docs/`는 최종 산출물이다.** 작업 기록(task ID, finding 번호, 라운드, 에이전트 이름, `_tasks/` 경로, "반영했다")은 `_tasks/`에만 있다. `docs-lint.py`가 검사하고, 위반이 있으면 문서 task는 `done`이 되지 않는다. 코드 주석은 문서 참조만 적지 않고 무엇을 왜 하는지 문장으로 쓴다. 커밋 메시지에는 task ID·run 이름·지적 번호 꼬리표를 넣지 않는다.
+
+**에이전트:** task 종류 하나에 에이전트 하나. 만드는 쪽은 researcher, architect, spec-writer, ux-designer, contract-designer, security, backend-developer, frontend-developer, devops, verifier. 판정하는 쪽은 critic(문서 비평·계획 비판), doc-reviewer(문서 리뷰), code-reviewer(코드 리뷰), security(보안 검토). investigator는 누구나 부르는 읽기 전용 조사자. 구조 결정은 architect의 추천과 사용자의 확정으로 간다. 에이전트 종류마다 첫 호출 뒤 기록에서 정의의 스킬이 실제로 로드됐는지 확인한다. 문서의 위치·이름·템플릿은 `design-docs` 스킬 한 곳에만 있다. 리더가 `docs/` 문서(run 보고서, 문서 지도)를 쓸 때는 `humanizer`를 따른다.

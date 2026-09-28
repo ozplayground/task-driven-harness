@@ -13,7 +13,9 @@
                        fixes : 재작업이 고칠 finding ID (대상 task에 기록된 것)
   ledger.py validate <run>          # 스키마·의존 사이클·동시 실행 가능 task 간 경로 겹침 검사
   ledger.py ready    <run>          # 의존이 모두 done인 task 목록 (투입 대상). 승인 전에는 조사·구조·비평·문서 리뷰만
-  ledger.py set      <run> <id> <status> [--note "..."] [--because "근거"]
+  ledger.py set      <run> <id> <status> [--note "..."] [--because "근거"] [--skip-docs-check]
+                       문서 task(paths가 docs/)를 done으로 옮기면 docs-lint.py가 자동으로 돈다.
+                       위반이 있으면 done이 되지 않는다. --skip-docs-check는 --because와 함께만
   ledger.py finding  <run> <id> add <fid> <severity> "내용"      # id = 산출물을 만든 task
   ledger.py finding  <run> <id> resolve|waive <fid> [--note "..."]
   ledger.py brief    <run> <id>     # 브리프에 옮길 것: task 필드와 의존 task의 산출물·보고서 경로
@@ -22,9 +24,16 @@
 
 상태: pending → ready → running → done
                         running → failed → ready (재투입)
+                        running → failed → done  (중단 종료. 만든 것까지로 닫는다)
                         running → ready (생성 거부 시 큐로 되돌림)
 
 리뷰·비평·재작업은 상태가 아니라 task다. 리더가 add로 만들고 --target으로 대상을 가리킨다.
+
+기계적으로 막는 것:
+  - 판정(critic·doc-reviewer·code-reviewer·security 검토)은 대상마다 에이전트별 한 번. 두 번째 add는 거부
+  - 재작업은 대상마다 한 번. 두 번째 add는 거부. 남은 지적은 run 보고서로
+  - minor finding은 --fixes에 넣을 수 없다 (형식·취향은 재작업 사유가 아니다)
+  - 문서 task의 done은 docs/ 경계 검사(design-docs/scripts/docs-lint.py)를 통과해야 한다
 """
 from __future__ import annotations
 
@@ -40,7 +49,7 @@ TRANSITIONS = {
     "pending": {"ready"},
     "ready": {"running", "pending"},
     "running": {"done", "failed", "ready"},
-    "failed": {"ready"},
+    "failed": {"ready", "done"},
     "done": set(),
 }
 AGENTS = [
@@ -49,6 +58,7 @@ AGENTS = [
     "critic", "doc-reviewer", "code-reviewer",
 ]
 JUDGES = {"critic", "doc-reviewer", "code-reviewer"}   # 산출물을 고치지 않는다. target이 있어야 한다 (critic의 계획 비판은 예외)
+DOCS_LINT = os.path.join(os.path.dirname(os.path.abspath(__file__)), "..", "..", "design-docs", "scripts", "docs-lint.py")
 PLANNING_AGENTS = {"researcher", "architect", "critic", "doc-reviewer"}   # 승인 전에도 돌 수 있다
 SEVERITIES = ["blocker", "major", "minor"]
 RUN_STATUSES = ["planning", "approved", "running", "done"]
@@ -180,13 +190,26 @@ def cmd_add(args):
     fixes = [s for s in (args.fixes or "").split(",") if s]
     if target:
         tt = task_of(data, target)
+        is_judge = args.agent in JUDGES or (args.agent == "security" and not fixes)
+        if is_judge:
+            prev = [t["id"] for t in data["tasks"] if t.get("target") == target and t["agent"] == args.agent]
+            if prev:
+                sys.exit(f"판정은 대상마다 한 번이다: {target}에 {args.agent} task {', '.join(prev)}가 이미 있다. "
+                         "재작업 결과는 리더가 보고서의 ID별 설명과 파일로 확인하고 finding resolve 한다. 남은 지적은 run 보고서로")
         if fixes:
             if args.agent != tt["agent"]:
                 sys.exit(f"재작업은 대상 task와 같은 에이전트가 한다: {target}는 {tt['agent']}")
-            known = {f["id"] for f in tt["findings"]}
+            prev = [t["id"] for t in data["tasks"] if t.get("target") == target and t.get("fixes")]
+            if prev:
+                sys.exit(f"재작업은 대상마다 한 번이다: {target}에 재작업 {', '.join(prev)}가 이미 있다. "
+                         "해소되지 않은 finding은 waive 하고 run 보고서 '문제가 있는 것'에 적는다")
+            known = {f["id"]: f for f in tt["findings"]}
             missing = [f for f in fixes if f not in known]
             if missing:
                 sys.exit(f"{target}에 없는 finding: {', '.join(missing)}")
+            minor = [f for f in fixes if known[f]["severity"] == "minor"]
+            if minor:
+                sys.exit(f"minor는 재작업 사유가 아니다: {', '.join(minor)}. 형식·취향 지적은 run 끝의 문서 정합 task에서 몰아 고치거나 버린다")
     elif fixes:
         sys.exit("--fixes는 --target과 함께 쓴다")
     depends = [s for s in (args.depends or "").split(",") if s]
@@ -308,13 +331,15 @@ def cmd_set(args):
         sys.exit(f"허용되지 않는 전이: {cur} → {new}")
     if new == "running":
         t["attempts"] += 1
-    if new == "done" and t.get("fixes"):
+    if new == "done" and t.get("fixes") and t.get("target"):
         tt = task_of(data, t["target"])
         still = [f["id"] for f in tt["findings"] if f["id"] in t["fixes"] and f["status"] == "open"]
         if still:
-            sys.exit(f"고치기로 한 finding이 아직 open이라 done 불가: {', '.join(still)}  (finding resolve 먼저)")
+            sys.exit(f"고치기로 한 finding이 아직 open이라 done 불가: {', '.join(still)}  (finding resolve 또는 waive 먼저)")
+    if new == "done" and cur != "failed":
+        docs_gate(t, getattr(args, "skip_docs_check", False), args.because)
     t["status"] = new
-    log(data, f"{args.id} {cur}→{new}" + (f": {args.note}" if args.note else ""), args.because)
+    log(data, f"{args.id} {cur}→{new}" + (f": {args.note}" if args.note else "") + (" [docs 검사 건너뜀]" if getattr(args, "skip_docs_check", False) else ""), args.because)
     if all(x["status"] == "done" for x in data["tasks"]):
         data["status"] = "done"
         log(data, "run done")
@@ -322,6 +347,36 @@ def cmd_set(args):
         data["status"] = "approved"
     save(args.run, data)
     print(f"{args.id}: {cur} → {new}")
+
+
+def docs_gate(t: dict, skip: bool, because: str | None) -> None:
+    """문서 task가 done이 되려면 docs/ 경계 검사를 통과해야 한다."""
+    is_judge = t["agent"] in JUDGES or (t["agent"] == "security" and t.get("target") and not t.get("fixes"))
+    doc_paths = [p for p in t["paths"] if p.startswith("docs/")]
+    if is_judge or not doc_paths:
+        return
+    if skip:
+        if not because:
+            sys.exit("--skip-docs-check는 --because와 함께만 쓴다")
+        print("! docs 경계 검사 건너뜀 (log에 기록)")
+        return
+    if not os.path.exists(DOCS_LINT):
+        print(f"! docs-lint.py가 없어 경계 검사를 건너뜀: {DOCS_LINT}")
+        return
+    wt = os.path.join(ROOT, ".worktrees", (t.get("target") or t["id"]).lower())
+    base = wt if os.path.isdir(wt) else ROOT
+    import glob as _glob
+    files = []
+    for p in doc_paths:
+        files += [f for f in _glob.glob(os.path.join(base, p), recursive=True) if f.endswith(".md") and os.path.isfile(f)]
+    if not files:
+        return
+    import subprocess
+    env = dict(os.environ, ORCHESTRATION_ROOT=base)
+    r = subprocess.run([sys.executable, DOCS_LINT, "docs", *files], env=env, capture_output=True, text=True)
+    sys.stdout.write(r.stdout)
+    if r.returncode != 0:
+        sys.exit(f"{t['id']}: docs/ 경계 위반이 있어 done 불가. 위 출력을 만든 에이전트({t['agent']})에게 그대로 넘겨 지우게 한다. 판정 task가 아니다")
 
 
 def cmd_finding(args):
@@ -414,7 +469,7 @@ def main():
     p.add_argument("--target"); p.add_argument("--fixes"); p.set_defaults(fn=cmd_add)
     p = sp.add_parser("validate"); p.add_argument("run"); p.set_defaults(fn=cmd_validate)
     p = sp.add_parser("ready"); p.add_argument("run"); p.set_defaults(fn=cmd_ready)
-    p = sp.add_parser("set"); p.add_argument("run"); p.add_argument("id"); p.add_argument("status"); p.add_argument("--note"); p.add_argument("--because"); p.set_defaults(fn=cmd_set)
+    p = sp.add_parser("set"); p.add_argument("run"); p.add_argument("id"); p.add_argument("status"); p.add_argument("--note"); p.add_argument("--because"); p.add_argument("--skip-docs-check", action="store_true"); p.set_defaults(fn=cmd_set)
     p = sp.add_parser("finding"); p.add_argument("run"); p.add_argument("id"); p.add_argument("op", choices=["add", "resolve", "waive"])
     p.add_argument("fid"); p.add_argument("severity", nargs="?"); p.add_argument("text", nargs="?"); p.add_argument("--note"); p.set_defaults(fn=cmd_finding)
     p = sp.add_parser("brief"); p.add_argument("run"); p.add_argument("id"); p.set_defaults(fn=cmd_brief)
