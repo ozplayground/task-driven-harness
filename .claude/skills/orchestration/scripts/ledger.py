@@ -30,8 +30,8 @@
 리뷰·비평·재작업은 상태가 아니라 task다. 리더가 add로 만들고 --target으로 대상을 가리킨다.
 
 기계적으로 막는 것:
-  - 판정(critic·doc-reviewer·code-reviewer·security 검토)은 대상마다 에이전트별 한 번. 두 번째 add는 거부
-  - 재작업은 대상마다 한 번. 두 번째 add는 거부. 남은 지적은 run 보고서로
+  - 판정(critic·doc-reviewer·code-reviewer·security 검토)은 대상마다 에이전트별 최대 두 번
+    (1차: 첫 판 전체, 2차: 재작업 뒤 해소 확인). 세 번째 add는 거부. 그 뒤는 리더가 직접 확인한다
   - minor finding은 --fixes에 넣을 수 없다 (형식·취향은 재작업 사유가 아니다)
   - 문서 task의 done은 docs/ 경계 검사(design-docs/scripts/docs-lint.py)를 통과해야 한다
 """
@@ -193,16 +193,12 @@ def cmd_add(args):
         is_judge = args.agent in JUDGES or (args.agent == "security" and not fixes)
         if is_judge:
             prev = [t["id"] for t in data["tasks"] if t.get("target") == target and t["agent"] == args.agent]
-            if prev:
-                sys.exit(f"판정은 대상마다 한 번이다: {target}에 {args.agent} task {', '.join(prev)}가 이미 있다. "
-                         "재작업 결과는 리더가 보고서의 ID별 설명과 파일로 확인하고 finding resolve 한다. 남은 지적은 run 보고서로")
+            if len(prev) >= 2:
+                sys.exit(f"판정은 대상마다 최대 두 번이다: {target}에 {args.agent} task {', '.join(prev)}가 이미 있다. "
+                         "남은 지적은 리더가 같은 에이전트에게 되돌려 보내고 산출물을 직접 대조해 닫는다")
         if fixes:
             if args.agent != tt["agent"]:
                 sys.exit(f"재작업은 대상 task와 같은 에이전트가 한다: {target}는 {tt['agent']}")
-            prev = [t["id"] for t in data["tasks"] if t.get("target") == target and t.get("fixes")]
-            if prev:
-                sys.exit(f"재작업은 대상마다 한 번이다: {target}에 재작업 {', '.join(prev)}가 이미 있다. "
-                         "해소되지 않은 finding은 waive 하고 run 보고서 '문제가 있는 것'에 적는다")
             known = {f["id"]: f for f in tt["findings"]}
             missing = [f for f in fixes if f not in known]
             if missing:

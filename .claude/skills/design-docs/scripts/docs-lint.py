@@ -16,7 +16,7 @@ docs 검사 — 위반(종료 1):
   - 템플릿 안내문 잔재("작성 예:", "각 절 아래의 설명은 …")
 docs 검사 — 경고(종료 코드에 영향 없음):
   - 깨진 상대 링크
-제외: docs/mandate.md(사용자가 쓴다), docs/runs/(run 보고서는 ID·어휘 검사 제외)
+제외: docs/mandate.md(사용자가 쓴다). run 보고서(docs/runs/)도 산출물이므로 같이 검사한다
 
 code 검사 — 위반(종료 1):
   - 문서 참조(§3.2, BR-04, REQ-01, docs/… 링크)만 있고 설명이 없는 주석.
@@ -58,7 +58,6 @@ def check_doc(path: str, root: str) -> tuple[list[str], list[str]]:
     viol, warn = [], []
     if rel.endswith("docs/mandate.md") or rel == "docs/mandate.md":
         return viol, warn
-    is_run_report = "/runs/" in f"/{rel}"
 
     if text.startswith("---"):
         viol.append(f"{rel}:1 YAML 머리말. docs/ 문서는 제목과 참고 문서로 시작한다")
@@ -73,7 +72,7 @@ def check_doc(path: str, root: str) -> tuple[list[str], list[str]]:
         if "_tasks/" in line:
             viol.append(f"{rel}:{ln} `_tasks/` 참조. 작업 기록은 docs/에서 가리키지 않는다")
 
-    if not is_run_report:
+    if True:
         for ln, s in _lines_with(TASK_ID, text):
             if not FINDING_ID.fullmatch(s):
                 viol.append(f"{rel}:{ln} task ID `{s}`")

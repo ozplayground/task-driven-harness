@@ -63,8 +63,8 @@
 |---|---|
 | `agent` | 이 task를 맡는 에이전트. 리더는 이 이름으로 `Agent`를 부른다 |
 | `target` | 비평·리뷰·보안 검토·재작업이 대상으로 삼는 task. `add`가 `depends_on`에 자동으로 넣는다 |
-| `fixes` | 재작업이 고칠 finding ID. 대상 task에 기록된 blocker·major여야 하고(minor는 거부), 전부 resolved 또는 waived여야 done이 된다. 대상마다 재작업은 하나뿐이다 |
-| `round` | 같은 대상에 같은 에이전트의 몇 번째 task인지. `add`가 센다. 산출물 task는 0. 판정·재작업은 대상마다 한 번이므로 실제로는 1을 넘지 않는다. 2를 만들려는 `add`는 거부된다 |
+| `fixes` | 재작업이 고칠 finding 번호. 대상 task에 기록된 blocker·major여야 하고(minor는 거부), 전부 resolved 또는 waived여야 done이 된다 |
+| `round` | 같은 대상에 같은 에이전트의 몇 번째 task인지. `add`가 센다. 산출물 task는 0. 판정은 대상마다 두 번까지이므로 3을 만들려는 `add`는 거부된다 |
 | `findings` | 산출물을 만든 task에 기록한다. 리뷰 task가 아니라 대상 task에 |
 | `attempts` | running으로 옮긴 횟수 |
 
@@ -80,7 +80,7 @@
 | `done` | 리더가 산출물을 확인함(코드면 테스트, 문서면 docs 경계 검사 통과). 판정 결과는 finding으로 남는다 | 리더 |
 | `failed` | 실패·중단. `ready`로 되돌려 재투입하거나, 더 진행하지 않으면 `done`으로 닫는다(중단 종료) | 리더 |
 
-리뷰·비평·재작업은 상태가 아니라 task다. 뒤 task는 산출물 task에 의존을 걸고, 판정 task에는 걸지 않는다. 판정과 재작업은 대상마다 한 번이다. 문서 task의 `done`은 `docs/` 경계 검사를 통과해야 한다(`set`이 자동으로 돌린다).
+리뷰·비평·재작업은 상태가 아니라 task다. 뒤 task는 산출물 task에 의존을 걸고, 판정 task에는 걸지 않는다. 판정은 대상마다 두 번까지(1차 전체, 2차 해소 확인)이고 그 뒤는 리더가 직접 닫는다. 문서 task의 `done`은 `docs/` 경계 검사를 통과해야 한다(`set`이 자동으로 돌린다).
 
 run이 `planning`일 때 `ready`가 되는 것은 researcher, architect, critic, doc-reviewer task뿐이다.
 
