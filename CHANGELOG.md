@@ -1,5 +1,39 @@
 # Changelog
 
+## [0.3.0] - 2026-09-29
+
+agent-sdk 개발 run(2026-09-24 ~ 09-27)의 운영 피드백 반영. 만드는 일보다 판정하는 일이 아홉 배 많았고, 문서 커밋이 코드 커밋의 네 배였다. 판정 횟수를 기계적으로 묶고, `docs/`와 `_tasks/`의 경계를 스크립트로 강제한다.
+
+### Added
+
+- `design-docs/scripts/docs-lint.py` — `docs/` 경계 검사. task ID, finding·비판 번호, 라운드, 에이전트 이름, `_tasks/` 경로, "재작업·반영" 어휘, 템플릿 안내문 잔재, YAML 머리말, 작성자·버전 표를 위반으로, 깨진 상대 링크를 경고로 낸다. `code` 모드는 문서 참조만 있고 설명이 없는 코드 주석(`# BR-04`, `// FSD §3.2 참조`)을 잡는다
+- `ledger.py set <문서 task> done`이 `docs-lint.py`를 자동으로 돌리고 위반이 있으면 done을 거부한다. `--skip-docs-check`는 `--because`와 함께만
+- `ledger.py`가 같은 대상에 두 번째 판정 task(에이전트별)와 두 번째 재작업 task의 등록을 거부한다. minor finding은 `--fixes`에 넣을 수 없다
+- 원장 전이 `failed → done`(중단 종료)
+- `design-docs`에 "정본은 한 곳" 표 — 규칙은 문서 하나에만 적고 나머지는 링크. 옮겨 적으면 doc-reviewer의 major(정본 중복), critic의 모순 항목
+- PRD 인수 조건마다 출처 표시 `(원문)` / `(보강)`. 사용자 요구는 원문 조건뿐이고, 보강 조건은 사용자에게 묻지 않고 리더가 정리한다. 추적 표에 인수 조건 열 추가
+- 리더가 에이전트 종류마다 첫 호출 뒤 기록에서 정의의 스킬이 실제로 로드됐는지 확인한다
+- `task-execution`에 "산출물의 경계" 절 — `docs/`에 작업 기록을 남기지 않고, 코드 주석은 그 자리에서 이해되게 쓴다
+- 문서 정합 task — 모든 구현 task가 끝나면 구현 보고서의 "명세에 없어 내가 정한 것"(레벨 2)과 판정의 minor를 문서에 한 번에 옮긴다. 판정을 붙이지 않고 리더가 diff와 `docs-lint.py`로 확인
+- 리더 규칙 — 대화 중에는 파일 수정·커밋·푸시를 하지 않고 답만 한다. 에이전트 보고를 사용자에게 옮기기 전에 파일로 확인한다. `add` 전에 `show`로 ID를 확인한다. 재작성 task는 사용자가 요구할 때만
+
+### Changed
+
+- 판정은 문서 첫 판에 critic 비평과 doc-reviewer 리뷰 각 한 번. 전체를 한꺼번에 본다. 재작업은 한 번이고 두 번째 판정은 없다. 리더가 재작업 보고서의 ID별 설명을 파일과 대조해 finding을 닫고, 남은 것은 waive하고 run 보고서 "문제가 있는 것"에 적는다. `verify-loop`, `direction-review`, critic·doc-reviewer·code-reviewer·security 정의, critique·review 템플릿에서 round 2 절차 삭제. "이전 라운드" 절을 "다 봤는가" 절로
+- 코드는 테스트·타입 검사·린트 통과가 완료 판정이고 리더가 워크트리에서 직접 돌린다. code-reviewer는 사용자가 요구했을 때, security 검토는 인증·시크릿·외부 호출·개인정보에 닿는 코드일 때만 한 번
+- 구현 착수 조건 — "입력 문서의 리뷰가 모두 끝나야"에서 "구조 결정이 확정되고 입력 문서의 첫 판이 `feature/<run>`에 있으면"으로. 의존은 산출물 task에 걸고 판정 task에 걸지 않는다. 산출물 확인 뒤 바로 머지하고 판정은 머지 뒤에 돈다. 판정으로 문서가 바뀌면 구현 task에 `SendMessage`로 알린다
+- 결정 기록이 확정되기 전에는 그 결정을 옮겨 적는 하위 문서 task를 던지지 않는다
+- 구현 중에는 문서를 고치지 않는다. 계약에 없는 필드·문구·엣지 케이스·수치는 코드와 테스트에서 정하고 보고서에 적는다. "막힌 것"은 구조 결정 공백, 동작 자체의 부재, 문서 간 모순 셋만. `task-execution`, `backend-work`, `frontend-work`, `interface-contract`, `plan-and-check`, backend-developer·contract-designer 정의, `design-docs` 결정 레벨 표
+- 형식 지적(링크, 문체, 제목, ID 표기, 볼드·번호 개수, 작업 흔적)은 전부 minor. 재작업 사유가 아니다. doc-reviewer 원칙 8~10을 minor로 내림
+- 커밋 메시지의 `Task:`·`Rework:` 꼬리표 삭제. 어느 run·task의 커밋인지는 브랜치 이름과 머지 커밋이 말한다
+- 워크트리를 만들면 의존성 설치(선택 의존성 포함)와 기준선 테스트까지가 한 절차
+- 직접 모드에서 판정 에이전트를 붙이지 않는다. 코드면 리더가 테스트를, 문서면 `docs-lint.py`를 돌린다
+- `CLAUDE.template.md`, `README.md` — 위 규칙 반영
+
+### Fixed
+
+- `ledger.py` — `--fixes`가 있는데 `target`이 없는 task를 `done`으로 옮기면 `KeyError`로 죽던 것
+
 ## [0.2.0] - 2026-09-24
 
 ### Added

@@ -1,11 +1,11 @@
 # task-driven-harness
 
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](LICENSE)
-[![Version](https://img.shields.io/badge/version-0.2.0-blue.svg)](CHANGELOG.md)
+[![Version](https://img.shields.io/badge/version-0.3.0-blue.svg)](CHANGELOG.md)
 
 Claude Code에서 **리더(메인 세션)가 `orchestration` 스킬로 사용자의 요청을 분석·계획하고, task로 나눠 서브에이전트에 분배하고, 산출물로 완료를 판정하는 하네스**다.
 
-이 저장소에는 애플리케이션이 없다. 담고 있는 것은 하네스 구성 자체다 — 에이전트 정의 **14종**, 스킬 **21종**, 문서 템플릿 **31종**, 원장 스크립트 하나(`ledger.py`), 설치 스크립트(`install.sh`), 대상 프로젝트용 규약(`CLAUDE.template.md`), 그리고 변경 이력(`CHANGELOG.md`). 전부 마크다운과 파이썬 표준 라이브러리로 되어 있다. 코드 task에는 ponytail·frontend-design 플러그인을, 라이브러리 문서 확인에는 context7 MCP 서버를 쓴다. 플러그인 설정은 `.claude/settings.json`에, MCP 서버는 `.mcp.json`에 있고 설치 스크립트가 대상 프로젝트에 합친다.
+이 저장소에는 애플리케이션이 없다. 담고 있는 것은 하네스 구성 자체다 — 에이전트 정의 **14종**, 스킬 **21종**, 문서 템플릿 **31종**, 원장 스크립트(`ledger.py`)와 경계 검사 스크립트(`docs-lint.py`), 설치 스크립트(`install.sh`), 대상 프로젝트용 규약(`CLAUDE.template.md`), 그리고 변경 이력(`CHANGELOG.md`). 전부 마크다운과 파이썬 표준 라이브러리로 되어 있다. 코드 task에는 ponytail·frontend-design 플러그인을, 라이브러리 문서 확인에는 context7 MCP 서버를 쓴다. 플러그인 설정은 `.claude/settings.json`에, MCP 서버는 `.mcp.json`에 있고 설치 스크립트가 대상 프로젝트에 합친다.
 
 - 원격: `https://github.com/ozplayground/task-driven-harness`, 기본 브랜치 `main`
 - 문서 언어: 한국어
@@ -52,7 +52,7 @@ Claude Code에서 **리더(메인 세션)가 `orchestration` 스킬로 사용자
 `.claude/skills/orchestration/SKILL.md`의 흐름을 요약한 것이다.
 
 1. **분석** — 받은 것(given)과 요구(wanted)를 분리하고, 받은 문서를 적재해 **결손을 채우지 않고 목록으로** 올린다. 결손은 결정 / 계약 / 중간 산출물 셋으로 갈린다 (`references/intake.md`).
-2. **계획** — 직접 모드(task 하나, 새 결정 없음, 파일 서너 개 이하)면 원장 없이 에이전트 하나와 리뷰어 한 번으로 끝낸다. 보안·규제 대상이면 `security` 요건 task를 맨 앞에 둔다. 되돌리기 어려운 구조 결정이 걸려 있으면 먼저 `architect`를 부르고, 조사를 거쳐 결정 초안과 후속 필수 설계 목록을 받는다. 그 다음 리더가 요구·결손·후속 설계를 `references/split.md`의 규칙(산출물 하나에 task 하나, 소유 경로 겹침 금지, 공유 자원은 선행 task, 의존은 입력 의존과 파일 충돌뿐)으로 task로 나눠 원장에 등록한다.
+2. **계획** — 직접 모드(task 하나, 새 결정 없음, 파일 서너 개 이하)면 원장 없이 에이전트 하나를 던지고 리더가 직접 확인(코드면 테스트, 문서면 `docs-lint.py`)해 끝낸다. 판정 에이전트는 붙이지 않는다. 보안·규제 대상이면 `security` 요건 task를 맨 앞에 둔다. 되돌리기 어려운 구조 결정이 걸려 있으면 먼저 `architect`를 부르고, 조사를 거쳐 결정 초안과 후속 필수 설계 목록을 받는다. 그 다음 리더가 요구·결손·후속 설계를 `references/split.md`의 규칙(산출물 하나에 task 하나, 소유 경로 겹침 금지, 공유 자원은 선행 task, 의존은 입력 의존과 파일 충돌뿐)으로 task로 나눠 원장에 등록한다.
 3. **비판과 승인** — 구현 task가 등록되면 투입 전에 `critic`을 한 번 던진다. 두 번째는 없다. 그 다음 task 표와 결정 선택지를 사용자에게 올려 승인을 받는다. 사용자에게 묻는 요구는 원문에서 온 것뿐이고, PRD가 풀어 쓰며 덧붙인 `(보강)` 조건은 리더가 정리한다.
 4. **분배** — 의존이 풀린 task를 동시에 5개까지 던진다. 구현 task는 구조 결정이 확정되고 입력 문서의 첫 판이 run 브랜치에 있으면 던진다. 판정 완료를 기다리지 않는다. 워크트리를 만들면 의존성 설치까지가 한 절차다. 에이전트 종류마다 첫 호출이 끝나면 기록에서 정의의 스킬이 실제로 로드됐는지 확인한다.
 5. **판정과 잇기** — 보고가 오면 리더가 형식·소유 경로·증거 수준을 직접 확인하고, 코드면 테스트를 직접 돌리고, 문서면 `set done`이 `docs-lint.py`를 돌린다. done이 되면 run 브랜치에 머지하고, 문서면 `critic` 비평 task와 `doc-reviewer` 리뷰 task를 한 번씩 만들어 던진다. 코드에는 기본으로 판정을 붙이지 않는다. 사용자가 요구했으면 `code-reviewer`, 보안 경계 코드면 `security` 검토를 한 번.
