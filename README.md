@@ -36,7 +36,7 @@ Claude Code에서 **리더(메인 세션)가 `orchestration` 스킬로 사용자
 
 ### 완료는 증거로만 인정된다
 
-만드는 에이전트는 완료 기준마다 증거 수준을 붙인다 — **실행 검증 / 산출물 대조 / 코드 확인 / 미검증**. 이 중 앞의 둘만 완료로 친다 (`completion-evidence`). 리더는 보고문을 믿지 않고 직접 확인한다. 코드면 워크트리에서 테스트·타입 검사·린트를 직접 돌리고, 문서면 `docs-lint.py`가 `set done`에서 자동으로 돈다. 판정 에이전트(`critic`, `doc-reviewer`, `code-reviewer`, `security` 검토)는 별도 인스턴스이고 `confirmed` / `needs-fix` / `inconclusive` 하나를 내며, 대상마다 한 번만 붙는다 (`verify-loop`).
+만드는 에이전트는 완료 기준마다 증거 수준을 붙인다 — **실행 검증 / 산출물 대조 / 코드 확인 / 미검증**. 이 중 앞의 둘만 완료로 친다 (`completion-evidence`). 리더는 보고문을 믿지 않고 직접 확인한다. 코드면 워크트리에서 테스트·타입 검사·린트를 직접 돌리고, 문서면 `docs-lint.py`가 `set done`에서 자동으로 돈다. 판정 에이전트(`critic`, `doc-reviewer`, `code-reviewer`, `security` 검토)는 별도 인스턴스이고 `confirmed` / `needs-fix` / `inconclusive` 하나를 내며, 대상마다 두 번까지 붙는다. 1차는 전체, 2차는 해소 확인 (`verify-loop`).
 
 ### 구현자는 설계하지 않는다
 
