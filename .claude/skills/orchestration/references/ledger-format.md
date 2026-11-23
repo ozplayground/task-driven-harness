@@ -25,7 +25,7 @@
       "round": 0,
       "attempts": 1,
       "findings": [
-        {"id": "T2-F1", "severity": "blocker | major | minor", "text": "...", "status": "open | resolved | waived"}
+        {"id": "T2-F1", "severity": "blocker | critical | major | minor | trivial", "text": "...", "status": "open | resolved | waived"}
       ],
       "report": "_tasks/order-page/reports/T2.md"
     },
@@ -63,7 +63,7 @@
 |---|---|
 | `agent` | 이 task를 맡는 에이전트. 리더는 이 이름으로 `Agent`를 부른다 |
 | `target` | 비평·리뷰·보안 검토·재작업이 대상으로 삼는 task. `add`가 `depends_on`에 자동으로 넣는다 |
-| `fixes` | 재작업이 고칠 finding 번호. 대상 task에 기록된 blocker·major여야 하고(minor는 거부), 전부 resolved 또는 waived여야 done이 된다 |
+| `fixes` | 재작업이 고칠 finding 번호. 대상 task에 기록된 blocker·critical·major여야 하고(minor·trivial은 거부), 전부 resolved 또는 waived여야 done이 된다 |
 | `round` | 같은 대상에 같은 에이전트의 몇 번째 task인지. `add`가 센다. 산출물 task는 0. 판정은 대상마다 두 번까지이므로 3을 만들려는 `add`는 거부된다 |
 | `findings` | 산출물을 만든 task에 기록한다. 리뷰 task가 아니라 대상 task에 |
 | `attempts` | running으로 옮긴 횟수 |

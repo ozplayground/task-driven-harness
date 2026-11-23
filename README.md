@@ -5,7 +5,7 @@
 
 Claude Code에서 **리더(메인 세션)가 `orchestration` 스킬로 사용자의 요청을 분석·계획하고, task로 나눠 서브에이전트에 분배하고, 산출물로 완료를 판정하는 하네스**다.
 
-이 저장소에는 애플리케이션이 없다. 담고 있는 것은 하네스 구성 자체다 — 에이전트 정의 **14종**, 스킬 **21종**, 문서 템플릿 **31종**, 원장 스크립트(`ledger.py`)와 경계 검사 스크립트(`docs-lint.py`), 설치 스크립트(`install.sh`), 대상 프로젝트용 규약(`CLAUDE.template.md`), 그리고 변경 이력(`CHANGELOG.md`). 전부 마크다운과 파이썬 표준 라이브러리로 되어 있다. 코드 task에는 ponytail·frontend-design 플러그인을, 라이브러리 문서 확인에는 context7 MCP 서버를 쓴다. 플러그인 설정은 `.claude/settings.json`에, MCP 서버는 `.mcp.json`에 있고 설치 스크립트가 대상 프로젝트에 합친다.
+이 저장소에는 애플리케이션이 없다. 담고 있는 것은 하네스 구성 자체다 — 에이전트 정의 **15종**, 스킬 **26종**, 문서 템플릿 **31종**, 원장 스크립트(`ledger.py`)와 경계 검사 스크립트(`docs-lint.py`), 설치 스크립트(`install.sh`), 대상 프로젝트용 규약(`CLAUDE.template.md`), 그리고 변경 이력(`CHANGELOG.md`). 전부 마크다운과 파이썬 표준 라이브러리로 되어 있다. 코드 task에는 ponytail·frontend-design 플러그인을, 라이브러리 문서 확인에는 context7 MCP 서버를 쓴다. 플러그인 설정은 `.claude/settings.json`에, MCP 서버는 `.mcp.json`에 있고 설치 스크립트가 대상 프로젝트에 합친다.
 
 - 원격: `https://github.com/ozplayground/task-driven-harness`, 기본 브랜치 `main`
 - 문서 언어: 한국어
@@ -57,14 +57,14 @@ Claude Code에서 **리더(메인 세션)가 `orchestration` 스킬로 사용자
 3. **비판과 승인** — 구현 task가 등록되면 투입 전에 `critic`을 한 번 던진다. 두 번째는 없다. 그 다음 task 표와 결정 선택지를 사용자에게 올려 승인을 받는다. 사용자에게 묻는 요구는 원문에서 온 것뿐이고, PRD가 풀어 쓰며 덧붙인 `(보강)` 조건은 리더가 정리한다.
 4. **분배** — 의존이 풀린 task를 동시에 5개까지 던진다. 구현 task는 구조 결정이 확정되고 입력 문서의 첫 판이 run 브랜치에 있으면 던진다. 판정 완료를 기다리지 않는다. 워크트리를 만들면 의존성 설치까지가 한 절차다. 에이전트 종류마다 첫 호출이 끝나면 기록에서 정의의 스킬이 실제로 로드됐는지 확인한다.
 5. **판정과 잇기** — 보고가 오면 리더가 형식·소유 경로·증거 수준을 직접 확인하고, 코드면 테스트를 직접 돌리고, 문서면 `set done`이 `docs-lint.py`를 돌린다. done이 되면 run 브랜치에 머지하고, 문서면 `critic` 비평 task와 `doc-reviewer` 리뷰 task를 한 번씩 만들어 던진다. 코드에는 기본으로 판정을 붙이지 않는다. 사용자가 요구했으면 `code-reviewer`, 보안 경계 코드면 `security` 검토를 한 번.
-6. **재작업과 2차** — 1차 판정이 전부 끝나면 blocker·major를 모아 원래 에이전트의 재작업 task 하나를 만든다. minor(형식 지적)는 넣지 않는다. 재작업 뒤 1차 판정 인스턴스를 재개해 2차로 해소 여부만 확인한다. 2차 뒤에 남은 지적은 3차 판정 없이 리더가 같은 에이전트에게 되돌려 보내고 산출물을 직접 대조해 닫는다. 고치지 않고 닫는 것은 반박이 맞다고 확인된 지적만이다. 원장이 세 번째 판정의 등록을 거부한다.
-7. **종료** — 구현이 끝나면 문서 정합 task 하나로 구현 보고서의 "명세에 없어 내가 정한 것"과 minor를 문서에 한 번에 옮기고, 그 결과에 비평·리뷰를 한 번씩 붙여 문서끼리, 문서와 코드·계약이 맞는지 본다. run 보고서를 쓰고, `git-workflow`대로 run 브랜치를 푸시하고 develop으로 PR·머지한다. 배포와 외부 전송은 하지 않는다.
+6. **재작업과 2차** — 1차 판정이 전부 끝나면 blocker·critical·major를 모아 원래 에이전트의 재작업 task 하나를 만든다. 심각도는 찾은 에이전트가 `verify-loop`의 다섯 단계(Blocker, Critical, Major, Minor, Trivial)로 붙인다. minor는 run 보고서 "알려진 문제"로, trivial(형식 지적)은 문서 정합으로 넘긴다. 결함을 고친 뒤 다시 돌릴 시험 범위는 리더가 정하지 않고 `impact-analyst`의 범위 파일로 정한다. 재작업 뒤 1차 판정 인스턴스를 재개해 2차로 해소 여부만 확인한다. 2차 뒤에 남은 지적은 3차 판정 없이 리더가 같은 에이전트에게 되돌려 보내고 산출물을 직접 대조해 닫는다. 고치지 않고 닫는 것은 반박이 맞다고 확인된 지적만이다. 원장이 세 번째 판정의 등록을 거부한다.
+7. **종료** — 구현이 끝나면 문서 정합 task 하나로 구현 보고서의 "명세에 없어 내가 정한 것"과 trivial을 문서에 한 번에 옮기고, 그 결과에 비평·리뷰를 한 번씩 붙여 문서끼리, 문서와 코드·계약이 맞는지 본다. run 보고서를 쓰고, `git-workflow`대로 run 브랜치를 푸시하고 develop으로 PR·머지한다. 배포와 외부 전송은 하지 않는다.
 
 서브에이전트가 중간에 끊겨도 이어갈 수 있다. 만드는 에이전트는 보고서를 진행 중에 갱신하고, 재개는 세 경로를 순서대로 쓴다: 죽은 에이전트를 메시지로 되살리기(기본) → 에이전트 기록으로 상태 복원 → 새 인스턴스에 재개 브리프(마지막 수단).
 
 ---
 
-## 에이전트 14종
+## 에이전트 15종
 
 `.claude/agents/<이름>.md`. task 종류 하나에 에이전트 하나다. 원장의 `agent` 필드가 곧 리더가 부를 서브에이전트이고, 각 에이전트는 자기 방법론 스킬을 `skills:`로 갖고 시작한다. 브리프는 스킬을 지정하지 않는다.
 
@@ -77,24 +77,25 @@ Claude Code에서 **리더(메인 세션)가 `orchestration` 스킬로 사용자
 | `researcher` | 조사·벤치마크. 주장마다 출처, 비교에는 축 | `research` | `docs/research/` |
 | `architect` | 구조·스택·횡단 규약 결정 초안, 결정 기록, FSD마다 설계 문서, 후속 필수 설계 목록, 실행 중 구조 상담. 로컬 실행·코드 규칙 문서. 확정은 사용자(무인이면 critic 비평 뒤 리더) | `architecture` | `docs/design/architecture.md`, `docs/decisions/`, `docs/dev/` |
 | `spec-writer` | PRD, FSD, 용어집, 레퍼런스 | `spec-authoring` | `docs/prd/`, `docs/fsd/`, `docs/glossary.md`, `docs/reference/` |
-| `ux-designer` | UX 설계, 디자인 시스템 | `ux-design`, `frontend-design`(플러그인) | `docs/design/ux.md`, `docs/design/design-system.md` |
+| `ux-designer` | UX 설계, 디자인 시스템 | `ux-design`, `design-system`, `frontend-design-direction`, `frontend-a11y`, `frontend-design`(플러그인) | `docs/design/ux.md`, `docs/design/design-system.md` |
 | `contract-designer` | 설계 문서에서 REST API 명세, SDK 인터페이스 정의, 데이터 모델을 도출 | `interface-contract` | `docs/api/`, `docs/interface/`, `docs/design/data-model.md` |
 | `security` | compliance·보안 요건 문서. 그리고 아키텍처·계약·데이터 모델·코드의 보안 검토 | `security-compliance` | `docs/compliance/`, `docs/design/security.md`, 리뷰 파일 |
 | `backend-developer` | 서버 코드와 테스트. 레벨 3만 정한다 | `backend-work`, `debugging`, `ponytail`(플러그인) | 소유 경로 |
-| `frontend-developer` | 화면 코드와 테스트. 새 화면이면 `frontend-design`도 | `frontend-work`, `debugging`, `ponytail` | 소유 경로 |
+| `frontend-developer` | 화면 코드와 테스트. 새 화면이면 `frontend-design`도 | `frontend-work`, `debugging`, `react-patterns`, `frontend-design-direction`, `frontend-a11y`, `ponytail` | 소유 경로 |
 | `devops` | CI·CD·컨테이너·배포 설정, 배포·모니터링·런북 문서 | `ci-cd`, `ponytail` | 소유 경로, `docs/ops/` |
-| `verifier` | 테스트 계획·케이스, 통합 검증, 테스트 실행 보고, e2e. 앱 코드는 고치지 않고 결함을 보고 | 없음 | `docs/qa/`, 소유 경로 |
+| `verifier` | 테스트 계획·케이스(영향 지도 포함), 통합 검증, 테스트 실행 보고, e2e. 앱 코드는 고치지 않고 결함을 심각도와 함께 보고. 수정 뒤 회귀는 범위 파일의 단계만 | `verify-loop` | `docs/qa/`, 소유 경로 |
 
-### 판정하는 에이전트 3종과 조사자
+### 판정하는 에이전트 3종과 조사자·분석자
 
 산출물을 고치지 않는다. `Edit`이 없고 `Write`는 자기 파일 하나에만 쓴다.
 
 | 이름 | 하는 일 | 스킬 | 쓰는 곳 |
 |---|---|---|---|
-| `critic` | 문서가 나올 때마다 내용을 비평한다 — 과잉 설계, 불필요한 기술, 근거 부족, 누락, 모순, 요구 대비. 구현 투입 전에는 계획을 비판한다 | `direction-review`, `design-docs`, `plan-and-check` | 비판 파일 |
+| `critic` | 문서가 나올 때마다 내용을 비평한다 — 과잉 설계, 불필요한 기술, 근거 부족, 누락, 모순, 요구 대비. 구현 투입 전에는 계획을 비판한다 | `direction-review`, `verify-loop`, `design-docs`, `plan-and-check` | 비판 파일 |
 | `doc-reviewer` | 문서가 완료 기준을 채웠는지 대조 판정. 템플릿 절, 입력 문서 항목, 참조 ID, 결정 레벨 | `verify-loop`, `design-docs`, `plan-and-check` | 리뷰 파일 |
 | `code-reviewer` | 코드가 완료 기준을 채웠는지 판정. 테스트·빌드 직접 실행, 3-dot diff로 범위, 계약 대조, 경계면 | `verify-loop`, `git-workflow`, `completion-evidence`, `design-docs`, `plan-and-check` | 리뷰 파일 |
 | `investigator` | 질문 하나에 `파일:줄` 근거를 붙여 200줄 이내로 답한다. 읽기 전용이고 누구나 부르며 위임의 종착점 | 없음 | 없음 |
+| `impact-analyst` | 바뀐 파일에서 의존·호출·계약·설정 키·데이터 형식을 따라가 다시 돌릴 시험 범위(부분/전체)를 정한다. 읽기 전용이고 리더가 부르는 보조라 원장에 task로 올리지 않는다 | `impact-analysis`, `completion-evidence` | 범위 파일 `_tasks/<run>/impact/` |
 
 재작업 task는 원래 만든 에이전트가 같은 워크트리에서 맡는다. 서브에이전트는 `investigator`만 부르고, `investigator`는 아무도 부르지 않는다. 리더(메인 세션)는 원장·notes·run 보고서를 쓴다.
 
@@ -102,7 +103,7 @@ Claude Code에서 **리더(메인 세션)가 `orchestration` 스킬로 사용자
 
 ---
 
-## 스킬 21종
+## 스킬 26종
 
 `.claude/skills/<이름>/SKILL.md`. 스킬은 에이전트 정의의 `skills:`로 시작 시 로드된다. 리더는 자기 스킬을 요청을 보고 고른다.
 
@@ -139,13 +140,18 @@ Claude Code에서 **리더(메인 세션)가 `orchestration` 스킬로 사용자
 | `frontend-work` | frontend-developer | 명세의 화면을 저장소의 방식으로 |
 | `ci-cd` | devops | 요구할 때만 만들고, 로컬에서 검증 가능한 만큼만 완료로 친다 |
 | `debugging` | backend-developer, frontend-developer | 원인을 알기 전에 고치지 않는다 — 재현 → 원인 → 최소 수정 → 증명 |
+| `impact-analysis` | impact-analyst | 바뀐 것 → 번지는 범위 → 영향 지도로 시험 단계 선택 → 전체 조건 판정 → 범위 파일 |
+| `design-system` | ux-designer | 디자인 시스템 생성·점검, 시각 일관성 |
+| `frontend-design-direction` | ux-designer, frontend-developer | 제품에 맞는 화면 디자인 방향 |
+| `frontend-a11y` | ux-designer, frontend-developer | 시맨틱 HTML, ARIA, 폼 레이블, 키보드·포커스, 스크린 리더 |
+| `react-patterns` | frontend-developer | React 훅, 서버/클라이언트 경계, Suspense, 상태 관리 |
 
 ### 판정
 
 | 스킬 | 에이전트 | 한 줄 |
 |---|---|---|
-| `verify-loop` | doc-reviewer, code-reviewer, security | 판정 형식, finding 기록, 재작업 한 번, 형식은 minor, 닫는 조건 |
-| `direction-review` | critic | 문서 비평 여섯 종류와 문서 종류별 확인 항목, 계획 비판, 심각도, 한 번에 전부 보기, 처리 절차 |
+| `verify-loop` | doc-reviewer, code-reviewer, critic, security, verifier | 판정 형식, 심각도 다섯 단계 표(정본은 여기 한 곳), finding 기록, 재작업은 blocker·critical·major만, 형식은 trivial, 닫는 조건 |
+| `direction-review` | critic | 문서 비평 여섯 종류와 문서 종류별 확인 항목, 계획 비판, 한 번에 전부 보기, 처리 절차 |
 
 ### 플러그인
 
@@ -251,21 +257,22 @@ docs-lint.py code [경로…]   # 문서 참조만 있고 설명이 없는 코�
 ├── .mcp.json                  # context7 MCP 서버 (대상 프로젝트로 복사)
 ├── .gitignore
 └── .claude/
-    ├── agents/                # 에이전트 정의 14종
+    ├── agents/                # 에이전트 정의 15종
     │   ├── researcher.md  architect.md  spec-writer.md  ux-designer.md  contract-designer.md
     │   ├── security.md  backend-developer.md  frontend-developer.md  devops.md  verifier.md
-    │   └── critic.md  doc-reviewer.md  code-reviewer.md  investigator.md
-    └── skills/                # 스킬 20종
+    │   └── critic.md  doc-reviewer.md  code-reviewer.md  investigator.md  impact-analyst.md
+    └── skills/                # 스킬 26종
         ├── orchestration/
         │   ├── SKILL.md
         │   ├── references/    # dispatch, intake, ledger-format, split
-        │   └── scripts/ledger.py
+        │   └── scripts/ledger.py, agent-check.py
         ├── task-execution/SKILL.md
         ├── design-docs/SKILL.md, templates/*.md (31종)
         │   └── scripts/docs-lint.py
         ├── security-compliance/SKILL.md
         ├── architecture/  research/  spec-authoring/  ux-design/  interface-contract/
-        ├── backend-work/  frontend-work/  ci-cd/  debugging/
+        ├── backend-work/  frontend-work/  ci-cd/  debugging/  impact-analysis/
+        ├── design-system/  frontend-design-direction/  frontend-a11y/  react-patterns/
         ├── plan-and-check/  completion-evidence/  verify-loop/  direction-review/  humanizer/
         ├── git-workflow/  unattended/  bugfix-followup/
         └── (각 SKILL.md)

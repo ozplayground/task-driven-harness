@@ -48,7 +48,7 @@
 
 ## 4. 지적 사항
 
-지적마다 번호(task-Fn), 심각도, 위치, 무엇이 기준과 어긋나는지, 재현 방법. 심각도는 blocker(완료 기준을 못 채웠거나 소유 경로 밖을 바꿈), major(기준은 채웠지만 특정 입력에서 깨지거나 요청 밖 변경, 또는 다른 문서의 규칙을 옮겨 적어 정본이 둘), minor(기록만, 재작업 안 함). 형식 지적(링크, 문체, 제목, ID 표기, 볼드·번호 개수)은 전부 minor다.
+지적마다 번호(task-Fn), 심각도, 위치, 무엇이 기준과 어긋나는지, 재현 방법. 심각도는 `verify-loop` 스킬의 표(Blocker, Critical, Major, Minor, Trivial)로 매긴다. blocker·critical·major만 재작업이고, minor는 알려진 문제, 형식 지적(링크, 문체, 제목, ID 표기, 볼드·번호 개수)은 전부 trivial이다.
 
 작성 예:
 
@@ -78,8 +78,8 @@
 
 ## 7. 판정
 
-세 가지 중 하나를 쓰고 이유를 한 줄로 적는다. confirmed는 모든 기준 충족에 blocker·major 없음. needs-fix는 blocker나 major가 있음. inconclusive는 판정할 수 없는 기준이 있음(무엇이 있어야 판정되는지 적는다).
+세 가지 중 하나를 쓰고 이유를 한 줄로 적는다. confirmed는 모든 기준 충족에 blocker·critical·major 없음. needs-fix는 그중 하나가 있음. inconclusive는 판정할 수 없는 기준이 있음(무엇이 있어야 판정되는지 적는다).
 
 작성 예:
 
-> needs-fix. I1-F1(blocker), I1-F2(major). 재작업 대상: I1-F1, I1-F2. minor 2건은 문서 정합에서.
+> needs-fix. I1-F1(blocker), I1-F2(major). 재작업 대상: I1-F1, I1-F2. trivial 2건은 문서 정합에서.

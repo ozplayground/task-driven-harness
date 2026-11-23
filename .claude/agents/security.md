@@ -11,6 +11,7 @@ skills:
   - plan-and-check
   - completion-evidence
   - git-workflow
+  - verify-loop
 ---
 
 # security

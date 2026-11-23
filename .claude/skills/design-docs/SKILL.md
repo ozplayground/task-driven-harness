@@ -115,7 +115,7 @@ description: 이 프로젝트의 모든 문서가 어디에, 무슨 이름으로
 
 ID 체계: 요구 `REQ-nn`·`NFR-nn`(PRD), FSD 안의 기능 `FN-nn`, 화면 `SCR-nn`·구성 요소 `SCR-nn-Enn`·규칙 `BR-nn`·메시지 `MSG-nn`, 결정 `ADR-nnn`, 엔티티 `E-<이름>`, 보안 요건 `S-nn`, compliance `C-nn`, 테스트 `TC-nn`. 하네스 내부: 비판 `P-Cn`, finding `<task>-Fn`.
 
-리뷰어와 critic은 링크를 따라가 대조한다. 깨진 링크(없는 파일, 없는 앵커)와 링크 없는 문서 언급은 minor finding이다. 재작업을 만들지 않고 run 끝의 문서 정합에서 몰아 고친다. `docs-lint.py docs`가 깨진 링크를 경고로 보여 준다.
+리뷰어와 critic은 링크를 따라가 대조한다. 깨진 링크(없는 파일, 없는 앵커)와 링크 없는 문서 언급은 trivial finding이다. 재작업을 만들지 않고 run 끝의 문서 정합에서 몰아 고친다. `docs-lint.py docs`가 깨진 링크를 경고로 보여 준다.
 
 ## 정본은 한 곳
 
@@ -132,7 +132,7 @@ ID 체계: 요구 `REQ-nn`·`NFR-nn`(PRD), FSD 안의 기능 `FN-nn`, 화면 `SC
 | 보안·규제 요건 | security.md / compliance | 설계·데이터 모델은 요건 번호와 링크 |
 | 테스트 대상과 방법 | 테스트 계획 | 다른 문서는 "TC-nn으로 확인"과 링크 |
 
-정본이 아닌 문서에 같은 규칙이 문장으로 다시 적혀 있으면 doc-reviewer의 major finding(정본 중복)이고 critic의 모순 항목이다. 정본 문서가 바뀌면 그 문서 하나만 고치고, 링크를 건 문서는 손대지 않는다.
+정본이 아닌 문서에 같은 규칙이 문장으로 다시 적혀 있으면 doc-reviewer의 trivial finding(정본 중복)이다. 다시 적은 문장이 정본과 달라 사실과 어긋나면 major이고 critic의 모순 항목이다. 정본 문서가 바뀌면 그 문서 하나만 고치고, 링크를 건 문서는 손대지 않는다.
 
 ## 저장소 관례가 위
 

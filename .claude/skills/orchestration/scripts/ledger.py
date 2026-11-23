@@ -16,7 +16,7 @@
   ledger.py set      <run> <id> <status> [--note "..."] [--because "근거"] [--skip-docs-check]
                        문서 task(paths가 docs/)를 done으로 옮기면 docs-lint.py가 자동으로 돈다.
                        위반이 있으면 done이 되지 않는다. --skip-docs-check는 --because와 함께만
-  ledger.py finding  <run> <id> add <fid> <severity> "내용"      # id = 산출물을 만든 task
+  ledger.py finding  <run> <id> add <fid> <blocker|critical|major|minor|trivial> "내용"      # id = 산출물을 만든 task
   ledger.py finding  <run> <id> resolve|waive <fid> [--note "..."]
   ledger.py brief    <run> <id>     # 브리프에 옮길 것: task 필드와 의존 task의 산출물·보고서 경로
   ledger.py show     <run> [--paths]
@@ -32,7 +32,7 @@
 기계적으로 막는 것:
   - 판정(critic·doc-reviewer·code-reviewer·security 검토)은 대상마다 에이전트별 최대 두 번
     (1차: 첫 판 전체, 2차: 재작업 뒤 해소 확인). 세 번째 add는 거부. 그 뒤는 리더가 직접 확인한다
-  - minor finding은 --fixes에 넣을 수 없다 (형식·취향은 재작업 사유가 아니다)
+  - --fixes에는 심각도 blocker·critical·major finding만 넣을 수 있다 (minor·trivial은 완료 전 고침이 아니다)
   - 문서 task의 done은 docs/ 경계 검사(design-docs/scripts/docs-lint.py)를 통과해야 한다
 """
 from __future__ import annotations
@@ -60,7 +60,14 @@ AGENTS = [
 JUDGES = {"critic", "doc-reviewer", "code-reviewer"}   # 산출물을 고치지 않는다. target이 있어야 한다 (critic의 계획 비판은 예외)
 DOCS_LINT = os.path.join(os.path.dirname(os.path.abspath(__file__)), "..", "..", "design-docs", "scripts", "docs-lint.py")
 PLANNING_AGENTS = {"researcher", "architect", "critic", "doc-reviewer"}   # 승인 전에도 돌 수 있다
-SEVERITIES = ["blocker", "major", "minor"]
+# 심각도는 표준 다섯 단계(Blocker, Critical, Major, Minor, Trivial)다. 기준은 verify-loop 스킬의
+# 표 한 곳에만 있다. 완료 전에 고쳐 재작업을 일으키는 것은 blocker, critical, major다.
+SEVERITIES = ["blocker", "critical", "major", "minor", "trivial"]
+FIX_SEVERITIES = {"blocker", "critical", "major"}
+
+
+def severity_of(finding: dict) -> str:
+    return str(finding["severity"]).lower()
 RUN_STATUSES = ["planning", "approved", "running", "done"]
 
 
@@ -203,9 +210,9 @@ def cmd_add(args):
             missing = [f for f in fixes if f not in known]
             if missing:
                 sys.exit(f"{target}에 없는 finding: {', '.join(missing)}")
-            minor = [f for f in fixes if known[f]["severity"] == "minor"]
-            if minor:
-                sys.exit(f"minor는 재작업 사유가 아니다: {', '.join(minor)}. 형식·취향 지적은 run 끝의 문서 정합 task에서 몰아 고치거나 버린다")
+            low = [f for f in fixes if severity_of(known[f]) not in FIX_SEVERITIES]
+            if low:
+                sys.exit(f"blocker·critical·major만 재작업 사유다: {', '.join(low)}. minor는 run 보고서 '알려진 문제'로, trivial은 문서 정합에서 몰아 고치거나 버린다")
     elif fixes:
         sys.exit("--fixes는 --target과 함께 쓴다")
     depends = [s for s in (args.depends or "").split(",") if s]
@@ -379,8 +386,10 @@ def cmd_finding(args):
     data = load(args.run)
     t = task_of(data, args.id)
     if args.op == "add":
+        if args.severity:
+            args.severity = args.severity.lower()
         if args.severity not in SEVERITIES:
-            sys.exit(f"severity는 {SEVERITIES} 중 하나")
+            sys.exit(f"심각도는 {SEVERITIES} 중 하나(기준은 verify-loop 스킬의 표)")
         if any(f["id"] == args.fid for f in t["findings"]):
             sys.exit(f"중복 finding: {args.fid}")
         t["findings"].append({

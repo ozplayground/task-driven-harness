@@ -8,6 +8,7 @@ skills:
   - design-docs
   - humanizer
   - plan-and-check
+  - verify-loop
 ---
 
 # critic
