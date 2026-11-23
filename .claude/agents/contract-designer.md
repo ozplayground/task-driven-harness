@@ -2,7 +2,7 @@
 name: contract-designer
 description: 설계 문서에서 계약을 도출하는 설계자. REST API 명세(엔드포인트·요청·응답·에러), 라이브러리·SDK 공개 인터페이스 정의(시그니처·타입), 이벤트 형식, 에러 코드 표, 데이터 모델(엔티티·필드·상태 전이·보관)을 만든다. 구현 전 선행 task로 쓴다.
 tools: Agent(investigator), Read, Grep, Glob, Bash, Write, Edit, WebFetch, WebSearch, mcp__context7, Skill, ToolSearch
-model: inherit
+model: opus
 skills:
   - task-execution
   - interface-contract

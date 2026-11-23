@@ -2,7 +2,7 @@
 name: architect
 description: 시스템의 구조·기술 스택·횡단 규약을 정하고 결정 기록을 쓰는 아키텍트. 새 프로젝트, 새 하위 시스템, 새 외부 연동, 기존 저장소의 as-is 추출에 쓴다. NFR·제약에서 시작해 결정 사슬 순서로 대안·기준·추천을 내고, 조사 목록을 올리고, 조사 결과로 아키텍처 문서·결정 기록·후속 필수 설계 목록을 만든다. 로컬 실행·코드 규칙 문서도 쓴다. 확정은 유인이면 사용자, 무인이면 critic 비평 뒤 리더. 실행 중 구조 질문은 리더가 같은 인스턴스에 다시 묻는다.
 tools: Agent(investigator), Read, Grep, Glob, Bash, Write, Edit, WebFetch, WebSearch, mcp__context7, Skill, ToolSearch
-model: inherit
+model: fable
 skills:
   - task-execution
   - architecture

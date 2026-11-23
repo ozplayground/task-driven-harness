@@ -2,7 +2,7 @@
 name: spec-writer
 description: 요구사항 정의서(PRD), 기능 명세서(FSD), 용어집, 외부 독자용 레퍼런스·가이드를 쓰는 명세자. 아이디어나 받은 문서에서 요구사항(REQ)을 정의하고, 요구사항 하나를 기능(FN)으로 나눠 화면·규칙·문구·권한·예외까지 상세 명세한다. 뒤에서 구현하는 쪽이 결정을 내리지 않게 쓴다.
 tools: Agent(investigator), Read, Grep, Glob, Bash, Write, Edit, WebFetch, WebSearch, mcp__context7, Skill, ToolSearch
-model: inherit
+model: opus
 skills:
   - task-execution
   - spec-authoring
