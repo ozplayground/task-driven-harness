@@ -2,7 +2,7 @@
 name: ux-designer
 description: UX 설계와 디자인 시스템을 쓰는 설계자. 역할·작업에서 정보 구조, 내비게이션, 화면 목록(SCR), 흐름, 레이아웃 골격, 상호작용 규칙, 상태 표현, 접근성을 정하는 UX 설계 문서와, 색·타이포·간격·공통 컴포넌트·반응형·문구 톤을 정하는 디자인 시스템 문서를 만든다. PRD 뒤, FSD 앞이다.
 tools: Agent(investigator), Read, Grep, Glob, Bash, Write, Edit, WebFetch, WebSearch, mcp__context7, Skill, ToolSearch, mcp__plugin_playwright_playwright
-model: sonnet
+model: opus
 skills:
   - task-execution
   - ux-design

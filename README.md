@@ -104,8 +104,8 @@ Claude Code에서 **리더(메인 세션)가 `orchestration` 스킬로 사용자
 | 기본 모델 | 에이전트 | 일의 성격 |
 |---|---|---|
 | `fable` | `architect` | 되돌리기 어려운 결정. 대안과 근거를 길게 따진다 |
-| `opus` | `spec-writer`, `contract-designer`, `security`, `critic`, `code-reviewer` | 뒤 task가 전부 기대는 문서를 쓰거나, 만든 쪽이 놓친 것을 찾는다 |
-| `sonnet` | `researcher`, `ux-designer`, `backend-developer`, `frontend-developer`, `devops`, `verifier`, `doc-reviewer`, `impact-analyst` | 정해진 입력대로 만들거나 대조한다. 호출이 가장 많다 |
+| `opus` | `researcher`, `spec-writer`, `ux-designer`, `contract-designer`, `security`, `critic`, `code-reviewer` | 결정의 근거가 되는 조사, 뒤 task가 전부 기대는 문서, 만든 쪽이 놓친 것을 찾는 판정 |
+| `sonnet` | `backend-developer`, `frontend-developer`, `devops`, `verifier`, `doc-reviewer`, `impact-analyst` | 정해진 입력대로 만들거나 대조한다. 호출이 가장 많다 |
 | `haiku` | `investigator` | 읽고 찾아 근거와 함께 답한다 |
 
 리더는 task의 상황을 보고 그 task만 모델을 바꿔 던진다. 원인을 모르는 버그, 동시성·데이터 이전·보안 경계·금액 계산, 바닥 모듈 변경은 `opus`로 올리고, 실패 뒤 재투입은 한 단계 올린다. 판정 에이전트는 대상을 만든 모델보다 낮지 않게 돌리고, 판단 없이 옮기는 일은 한 단계 내린다. 표는 `orchestration`의 `references/dispatch.md` "모델" 절에 있고, 바꾼 모델은 원장의 `model` 필드(`ledger.py add --model`, `set --model`)에 근거와 함께 남는다. 프로젝트에 맞추려면 에이전트 정의의 `model`과 이 표를 고친다.
