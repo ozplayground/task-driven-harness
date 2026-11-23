@@ -97,18 +97,21 @@ Claude Code에서 **리더(메인 세션)가 `orchestration` 스킬로 사용자
 | `investigator` | 질문 하나에 `파일:줄` 근거를 붙여 200줄 이내로 답한다. 읽기 전용이고 누구나 부르며 위임의 종착점 | 없음 | 없음 |
 | `impact-analyst` | 바뀐 파일에서 의존·호출·계약·설정 키·데이터 형식을 따라가 다시 돌릴 시험 범위(부분/전체)를 정한다. 읽기 전용이고 리더가 부르는 보조라 원장에 task로 올리지 않는다 | `impact-analysis`, `completion-evidence` | 범위 파일 `_tasks/<run>/impact/` |
 
-### 모델
+### 모델과 effort
 
-에이전트마다 정의의 `model`에 기본 모델이 있다. 리더가 어떤 모델로 돌든 바뀌지 않는다.
+에이전트마다 정의의 `model`과 `effort`에 기본값이 있다. 리더가 어떤 모델로 돌든 바뀌지 않는다. 세션과 다른 모델로 도는 서브에이전트는 정의에 `effort`가 없으면 그 모델의 기본 단계로 돌기 때문에 둘을 같이 적는다.
 
-| 기본 모델 | 에이전트 | 일의 성격 |
+| 모델 · effort | 에이전트 | 일의 성격 |
 |---|---|---|
-| `fable` | `architect` | 되돌리기 어려운 결정. 대안과 근거를 길게 따진다 |
-| `opus` | `researcher`, `spec-writer`, `ux-designer`, `contract-designer`, `security`, `critic`, `code-reviewer` | 결정의 근거가 되는 조사, 뒤 task가 전부 기대는 문서, 만든 쪽이 놓친 것을 찾는 판정 |
-| `sonnet` | `backend-developer`, `frontend-developer`, `devops`, `verifier`, `doc-reviewer`, `impact-analyst` | 정해진 입력대로 만들거나 대조한다. 호출이 가장 많다 |
-| `haiku` | `investigator` | 읽고 찾아 근거와 함께 답한다 |
+| `fable` · high | `architect` | 되돌리기 어려운 구조 결정. 호출은 적고 틀리면 뒤 task가 전부 다시 돈다 |
+| `opus` · high | `critic`, `code-reviewer`, `security` | 만든 쪽이 놓친 결함·모순·취약점을 찾는다. 모델과 effort에 따라 찾는 양이 크게 달라지는 일이다 |
+| `opus` · medium | `researcher`, `spec-writer`, `contract-designer` | 근거를 가려 결론을 내는 조사, 요구를 정의하는 명세, 구현 전부가 대조하는 계약 |
+| `sonnet` · high | `backend-developer`, `frontend-developer`, `devops`, `verifier`, `ux-designer`, `doc-reviewer`, `impact-analyst` | 입력 문서가 정해 준 범위 안에서 만들고, 돌리고, 대조한다. 호출이 가장 많다 |
+| `sonnet` · medium | `investigator` | 코드와 문서를 읽고 근거를 붙여 답한다 |
 
-리더는 task의 상황을 보고 그 task만 모델을 바꿔 던진다. 원인을 모르는 버그, 동시성·데이터 이전·보안 경계·금액 계산, 바닥 모듈 변경은 `opus`로 올리고, 실패 뒤 재투입은 한 단계 올린다. 판정 에이전트는 대상을 만든 모델보다 낮지 않게 돌리고, 판단 없이 옮기는 일은 한 단계 내린다. 표는 `orchestration`의 `references/dispatch.md` "모델" 절에 있고, 바꾼 모델은 원장의 `model` 필드(`ledger.py add --model`, `set --model`)에 근거와 함께 남는다. 프로젝트에 맞추려면 에이전트 정의의 `model`과 이 표를 고친다.
+리더는 task의 상황을 보고 그 task만 바꿔 던진다. 원인을 모르는 버그, 동시성·데이터 이전·보안 경계·금액 계산, 바닥 모듈 변경은 `opus`·high로 올린다. 실패 뒤 재투입은 원인을 가른다. 읽지 않았거나 검증을 건너뛴 실패면 effort를 올리고, 다 읽고 시도했는데 틀렸으면 모델을 올린다. 판정 에이전트는 대상을 만든 모델보다 낮지 않게 돌린다. architect가 구조 결정 뒤에 쓰는 설계 문서는 `opus`로, 판단 없이 옮기는 일은 한 단계 아래로, investigator의 위치 조회는 `haiku`로 내린다. 표는 `orchestration`의 `references/dispatch.md` "모델과 effort" 절에 있고, 바꾼 값은 원장의 `model`·`effort` 필드(`ledger.py`의 `--model`, `--effort`)에 근거와 함께 남는다.
+
+리더(메인 세션)는 분할·판정·잇기를 전부 맡으므로 `opus` 이상으로 돌린다. 프로젝트에 맞추려면 에이전트 정의의 `model`·`effort`와 위 표를 고친다.
 
 재작업 task는 원래 만든 에이전트가 같은 워크트리에서 맡는다. 서브에이전트는 `investigator`만 부르고, `investigator`는 아무도 부르지 않는다. 리더(메인 세션)는 원장·notes·run 보고서를 쓴다.
 

@@ -60,7 +60,7 @@ description: 원장의 task 하나를 맡아 산출물을 만드는 모든 에�
 
 라이브러리·프레임워크의 사용법과 API는 기억으로 쓰지 않고 context7(`resolve-library-id` → `query-docs`, 버전 명시)으로 현재 문서를 읽는다. 한 번 조회한 결과 중 이후에도 필요한 것은 보고서나 산출물 문서에 옮겨 적고 다시 조회하지 않는다.
 
-코드베이스 구조, 기존 컨벤션, 외부 문서처럼 읽을 것이 많으면 `investigator`를 부른다(`Agent`, `subagent_type: investigator`, 브리프는 `QUESTION / SCOPE / EXPECTED OUTCOME`). 여러 질문은 여러 investigator를 동시에 던진다. 그 밖의 에이전트는 부르지 않는다. 쓰기 task를 만들지 않는다.
+코드베이스 구조, 기존 컨벤션, 외부 문서처럼 읽을 것이 많으면 `investigator`를 부른다(`Agent`, `subagent_type: investigator`, 브리프는 `QUESTION / SCOPE / EXPECTED OUTCOME`). 여러 질문은 여러 investigator를 동시에 던진다. 파일·기호·설정 값의 위치만 묻는 조회는 `model: haiku`로 부른다. 그 밖의 에이전트는 부르지 않는다. 쓰기 task를 만들지 않는다.
 
 ## 재작업 호출일 때
 

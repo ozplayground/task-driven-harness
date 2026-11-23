@@ -3,6 +3,7 @@ name: security
 description: 보안·컴플라이언스 전문가. 두 가지 일을 한다. 첫째, 대상 데이터 분류, 적용 법령·스토어·심사 요건, 위협 모델, 보안 요건(인증·권한, 시크릿, 암호화, 로그 금지 항목, 입력 검증, 외부 호출), 설계에 강제되는 항목, 검증 방법을 정해 compliance 문서와 보안 요건 문서를 쓴다. 아키텍처와 데이터 모델보다 먼저다. 둘째, 아키텍처·계약·데이터 모델·코드를 보안 관점으로 검토해 finding을 낸다.
 tools: Agent(investigator), Read, Grep, Glob, Bash, Write, Edit, WebFetch, WebSearch, mcp__context7, Skill, ToolSearch
 model: opus
+effort: high
 skills:
   - task-execution
   - security-compliance

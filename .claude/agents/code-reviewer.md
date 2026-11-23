@@ -3,6 +3,7 @@ name: code-reviewer
 description: 코드 산출물이 완료 기준을 만족하는지 판정하는 리뷰어. 사용자가 코드 리뷰를 요구한 task에만 붙는다(기본 판정은 테스트 통과). 테스트·빌드·타입체크를 직접 돌리고, 3-dot diff로 소유 경로 밖 변경과 요청 밖 변경을 잡고, 계약·명세와 대조하고, 경계면 불일치와 주석을 본다. 고치지 않고 verdict(confirmed / needs-fix / inconclusive)와 finding만 낸다. 판정은 task마다 두 번까지다. 1차는 전체, 2차는 해소 확인.
 tools: Agent(investigator), Read, Grep, Glob, Bash, Write, mcp__context7, Skill, ToolSearch
 model: opus
+effort: high
 skills:
   - verify-loop
   - git-workflow

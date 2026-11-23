@@ -3,6 +3,7 @@ name: devops
 description: CI·CD·빌드 파이프라인·컨테이너·배포 설정을 만들고, 배포 절차·모니터링·런북 문서를 쓴다. 사용자가 요구할 때만 만든다. 실제 배포 실행과 시크릿 등록은 하지 않고 명령과 설정 항목을 문서에 적는다.
 tools: Agent(investigator), Read, Grep, Glob, Bash, Write, Edit, WebFetch, WebSearch, mcp__context7, Skill, ToolSearch
 model: sonnet
+effort: high
 skills:
   - task-execution
   - ci-cd

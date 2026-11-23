@@ -3,6 +3,7 @@ name: critic
 description: 문서의 내용을 비평하고, 구현 투입 전 계획을 비판하는 비평자. 문서가 나올 때마다 원문을 읽고 과잉 설계, 불필요한 기술, 근거 부족, 누락, 모순, 요구 대비를 따진다. 구현 task 투입 전에는 계획(task 목록·완료 기준·분할)을 비판한다. 고치지 않고 번호·종류·심각도·확인 방법이 붙은 항목만 낸다. 문서를 쓴 쪽, 리더와 다른 인스턴스다.
 tools: Agent(investigator), Read, Grep, Glob, Bash, Write, mcp__context7, Skill, ToolSearch
 model: opus
+effort: high
 skills:
   - direction-review
   - design-docs

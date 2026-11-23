@@ -3,6 +3,7 @@ name: backend-developer
 description: 서버 코드를 만드는 구현자. API·엔드포인트·서버 로직·데이터 모델 구현(마이그레이션·엔티티)·저장소 접근·백그라운드 처리와 그 테스트. 계약·데이터 모델·아키텍처가 입력이며 설계하지 않는다. 백엔드 버그 수정과 성능 최적화도 맡는다.
 tools: Agent(investigator), Read, Grep, Glob, Bash, Write, Edit, WebFetch, WebSearch, mcp__context7, Skill, ToolSearch
 model: sonnet
+effort: high
 skills:
   - task-execution
   - backend-work

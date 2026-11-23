@@ -8,14 +8,15 @@
   ledger.py init     <run> --request "요청 한 줄"
   ledger.py add      <run> <id> --agent <에이전트> --title T --paths a/**,b.md
                      [--depends T1,T2] [--accept "기준1" --accept "기준2"] [--because "근거"]
-                     [--target T1] [--fixes T1-F1,T1-F2] [--model <모델>]
+                     [--target T1] [--fixes T1-F1,T1-F2] [--model <모델>] [--effort <단계>]
                        target: 리뷰·비평·재작업·보안 검토가 대상으로 삼는 task
                        fixes : 재작업이 고칠 finding ID (대상 task에 기록된 것)
                        model : 이 task만 에이전트 정의의 기본 모델과 다르게 돌릴 때. Agent 도구의 model 값
+                       effort: 이 task만 정의의 기본 effort와 다르게 돌릴 때. low|medium|high|xhigh|max
   ledger.py validate <run>          # 스키마·의존 사이클·동시 실행 가능 task 간 경로 겹침 검사
   ledger.py ready    <run>          # 의존이 모두 done인 task 목록 (투입 대상). 승인 전에는 조사·구조·비평·문서 리뷰만
-  ledger.py set      <run> <id> <status> [--note "..."] [--because "근거"] [--skip-docs-check] [--model <모델>]
-                       --model: 재투입하면서 모델을 바꿀 때. default를 주면 정의의 기본 모델로 되돌린다
+  ledger.py set      <run> <id> <status> [--note "..."] [--because "근거"] [--skip-docs-check] [--model <모델>] [--effort <단계>]
+                       --model, --effort: 재투입하면서 모델이나 effort를 바꿀 때. default를 주면 정의의 기본값으로 되돌린다
                        문서 task(paths가 docs/)를 done으로 옮기면 docs-lint.py가 자동으로 돈다.
                        위반이 있으면 done이 되지 않는다. --skip-docs-check는 --because와 함께만
   ledger.py finding  <run> <id> add <fid> <blocker|critical|major|minor|trivial> "내용"      # id = 산출물을 만든 task
@@ -66,6 +67,10 @@ PLANNING_AGENTS = {"researcher", "architect", "critic", "doc-reviewer"}   # 승�
 # 표 한 곳에만 있다. 완료 전에 고쳐 재작업을 일으키는 것은 blocker, critical, major다.
 SEVERITIES = ["blocker", "critical", "major", "minor", "trivial"]
 FIX_SEVERITIES = {"blocker", "critical", "major"}
+
+# 에이전트 정의의 기본값 대신 이 task에만 쓰는 값. 없으면 정의를 따른다.
+OVERRIDES = ("model", "effort")
+EFFORTS = ["low", "medium", "high", "xhigh", "max"]
 
 
 def severity_of(finding: dict) -> str:
@@ -239,8 +244,9 @@ def cmd_add(args):
         t["target"] = target
     if fixes:
         t["fixes"] = fixes
-    if args.model:
-        t["model"] = args.model
+    for k in OVERRIDES:
+        if getattr(args, k):
+            t[k] = getattr(args, k)
     data["tasks"].append(t)
     log(data, f"add {args.id} ({args.agent}" + (f" → {target}" if target else "") + ")", args.because)
     save(args.run, data)
@@ -338,10 +344,12 @@ def cmd_set(args):
         sys.exit(f"허용되지 않는 전이: {cur} → {new}")
     if new == "running":
         t["attempts"] += 1
-    if args.model == "default":
-        t.pop("model", None)
-    elif args.model:
-        t["model"] = args.model
+    for k in OVERRIDES:
+        v = getattr(args, k)
+        if v == "default":
+            t.pop(k, None)
+        elif v:
+            t[k] = v
     if new == "done" and t.get("fixes") and t.get("target"):
         tt = task_of(data, t["target"])
         still = [f["id"] for f in tt["findings"] if f["id"] in t["fixes"] and f["status"] == "open"]
@@ -424,7 +432,7 @@ def cmd_brief(args):
     data = load(args.run)
     t = task_of(data, args.id)
     out = {k: t[k] for k in ("id", "agent", "title", "paths", "acceptance", "round") if k in t}
-    for k in ("target", "fixes", "model"):
+    for k in ("target", "fixes", *OVERRIDES):
         if k in t:
             out[k] = t[k]
     out["depends"] = [
@@ -465,7 +473,7 @@ def cmd_show(args):
         open_f = sum(1 for f in t["findings"] if f["status"] == "open")
         fs = f"{open_f} open/{len(t['findings'])}" if t["findings"] else "-"
         tg = f"{t['target']} r{t['round']}" if t.get("target") else "-"
-        print(f"{t['id']:<8}{t['status']:<9}{t['agent']:<19}{tg:<10}{','.join(t['depends_on']) or '-':<14}{fs:<12}{t['title']}" + (f"  [model: {t['model']}]" if t.get("model") else ""))
+        print(f"{t['id']:<8}{t['status']:<9}{t['agent']:<19}{tg:<10}{','.join(t['depends_on']) or '-':<14}{fs:<12}{t['title']}" + "".join(f"  [{k}: {t[k]}]" for k in OVERRIDES if t.get(k)))
         if args.paths:
             for p in t["paths"]:
                 print(f"{'':<8}  paths: {p}")
@@ -479,10 +487,10 @@ def main():
     p = sp.add_parser("add"); p.add_argument("run"); p.add_argument("id"); p.add_argument("--agent", required=True)
     p.add_argument("--title", required=True); p.add_argument("--paths", required=True); p.add_argument("--depends")
     p.add_argument("--accept", action="append"); p.add_argument("--because")
-    p.add_argument("--target"); p.add_argument("--fixes"); p.add_argument("--model"); p.set_defaults(fn=cmd_add)
+    p.add_argument("--target"); p.add_argument("--fixes"); p.add_argument("--model"); p.add_argument("--effort", choices=EFFORTS); p.set_defaults(fn=cmd_add)
     p = sp.add_parser("validate"); p.add_argument("run"); p.set_defaults(fn=cmd_validate)
     p = sp.add_parser("ready"); p.add_argument("run"); p.set_defaults(fn=cmd_ready)
-    p = sp.add_parser("set"); p.add_argument("run"); p.add_argument("id"); p.add_argument("status"); p.add_argument("--note"); p.add_argument("--because"); p.add_argument("--skip-docs-check", action="store_true"); p.add_argument("--model"); p.set_defaults(fn=cmd_set)
+    p = sp.add_parser("set"); p.add_argument("run"); p.add_argument("id"); p.add_argument("status"); p.add_argument("--note"); p.add_argument("--because"); p.add_argument("--skip-docs-check", action="store_true"); p.add_argument("--model"); p.add_argument("--effort", choices=EFFORTS + ["default"]); p.set_defaults(fn=cmd_set)
     p = sp.add_parser("finding"); p.add_argument("run"); p.add_argument("id"); p.add_argument("op", choices=["add", "resolve", "waive"])
     p.add_argument("fid"); p.add_argument("severity", nargs="?"); p.add_argument("text", nargs="?"); p.add_argument("--note"); p.set_defaults(fn=cmd_finding)
     p = sp.add_parser("brief"); p.add_argument("run"); p.add_argument("id"); p.set_defaults(fn=cmd_brief)
