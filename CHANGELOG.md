@@ -1,5 +1,27 @@
 # Changelog
 
+## [0.4.0] - 2026-11-23
+
+형상관리 시스템 개발 run(2026-11-10 ~ 11-19)의 운영 피드백과, 에이전트마다 일에 맞는 모델을 쓰게 하는 변경. 결함을 고칠 때마다 전체 시험을 다시 돌려 이틀 가까이 반복했고, 작은 결함까지 완료 전에 고치느라 사흘 가까이 시험이 되풀이됐다. 모든 에이전트가 세션 모델 하나로 돌던 것도 바꿨다.
+
+### Added
+
+- `impact-analyst` 에이전트와 `impact-analysis` 스킬 — 바뀐 파일에서 의존·호출·계약·설정 키·데이터 형식을 따라가 다시 돌릴 시험 범위(부분/전체)를 범위 파일로 낸다. 읽기 전용이고 리더가 부르는 보조라 원장에 task로 올리지 않는다. 수정 뒤 회귀와 인수 시험의 범위는 리더가 직접 정하지 않고 이 범위 파일로 정한다. 테스트 계획에 "영향 지도" 절을 둔다
+- 에이전트 정의마다 `model`과 `effort` — architect는 `fable`·high, critic·code-reviewer·security는 `opus`·high, researcher·spec-writer·contract-designer는 `opus`·medium, 구현·devops·verifier·ux-designer·doc-reviewer·impact-analyst는 `sonnet`·high, investigator는 `sonnet`·medium. 리더가 어떤 모델로 돌든 바뀌지 않는다
+- `dispatch.md` "모델과 effort" 절 — 에이전트 안의 일의 종류로 task마다 바꾸는 표(원인을 모르는 버그, 동시성·데이터 이전·보안 경계·금액 계산, 바닥 모듈, architect의 결정 뒤 설계 문서, 용어집·레퍼런스, investigator의 위치 조회, 판정 대상을 만든 모델)와 다시 던질 때의 표(건너뛴 실패면 effort를, 다 읽고 틀렸으면 모델을 올린다)
+- `ledger.py add`·`set`의 `--model`, `--effort` — task에만 쓰는 값을 원장에 남기고 `brief`·`show`가 보여 준다
+- 프론트엔드 스킬 `design-system`, `frontend-design-direction`, `frontend-a11y`, `react-patterns` — ux-designer와 frontend-developer가 로드한다. 두 에이전트의 `tools`에 playwright MCP
+- `orchestration/scripts/agent-check.py`와 10분 점검 — 원장의 running task와 서브에이전트 기록을 대조해 일하는 중·멈춤·보고함·에이전트 없음을 낸다
+- `task-execution`에 "빌드와 컨테이너 실행" 절 — 스택은 한 세트, 바뀐 서비스만 다시 띄우고, 쓰지 않으면 내린다
+- verifier에 "상황에 맞는 시험" — 개발 중에는 규모·성능·부하 시험을 하지 않고, 수정 뒤 회귀는 범위 파일의 단계만 돈다
+
+### Changed
+
+- 심각도를 표준 다섯 단계(Blocker, Critical, Major, Minor, Trivial)로. 표는 `verify-loop` 한 곳에만 있고 찾은 에이전트가 붙인다. 재작업은 blocker·critical·major에만 만들고 `ledger.py`의 `--fixes`도 그 셋만 받는다. minor는 run 보고서 "알려진 문제"로, 형식 지적은 trivial로 문서 정합에서 몰아 고치거나 버린다. `direction-review`와 `security-compliance`의 따로 있던 심각도 표 삭제. critic·security·verifier가 `verify-loop`를 로드한다
+- 고치라고 온 결함은 고치는 에이전트가 재작업 전에 심각도를 확인하고 근거로 반박할 수 있다. 리더는 명세와 대조해 맞으면 minor로 내린다
+- 인수 판정을 위한 전체 실행은 run에서 한 번. 그 뒤의 고침은 영향 평가로 범위를 정한다
+- 무인이거나 goal이 켜져 있으면 예외 없이 사용자를 찾지 않는다. 리더가 정한 것을 사용자 결정으로 적지 않고, 기준을 바꿔 통과로 만들지 않는다
+
 ## [0.3.1] - 2026-09-29
 
 0.3.0의 "재작업은 한 번, 두 번째 판정 없음"이 결함을 남긴 채 run을 끝낼 수 있어 되돌림. 막으려던 것은 한 줄 고칠 때마다 비평·리뷰가 다시 도는 판정 반복이고, 고치는 일 자체를 자르는 것이 아니다.
