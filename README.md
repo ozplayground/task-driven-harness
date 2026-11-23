@@ -109,7 +109,19 @@ Claude Code에서 **리더(메인 세션)가 `orchestration` 스킬로 사용자
 | `sonnet` · high | `backend-developer`, `frontend-developer`, `devops`, `verifier`, `ux-designer`, `doc-reviewer`, `impact-analyst` | 입력 문서가 정해 준 범위 안에서 만들고, 돌리고, 대조한다. 호출이 가장 많다 |
 | `sonnet` · medium | `investigator` | 코드와 문서를 읽고 근거를 붙여 답한다 |
 
-리더는 task의 상황을 보고 그 task만 바꿔 던진다. 원인을 모르는 버그, 동시성·데이터 이전·보안 경계·금액 계산, 바닥 모듈 변경은 `opus`·high로 올린다. 실패 뒤 재투입은 원인을 가른다. 읽지 않았거나 검증을 건너뛴 실패면 effort를 올리고, 다 읽고 시도했는데 틀렸으면 모델을 올린다. 판정 에이전트는 대상을 만든 모델보다 낮지 않게 돌린다. architect가 구조 결정 뒤에 쓰는 설계 문서는 `opus`로, 판단 없이 옮기는 일은 한 단계 아래로, investigator의 위치 조회는 `haiku`로 내린다. 표는 `orchestration`의 `references/dispatch.md` "모델과 effort" 절에 있고, 바꾼 값은 원장의 `model`·`effort` 필드(`ledger.py`의 `--model`, `--effort`)에 근거와 함께 남는다.
+한 에이전트가 여러 종류의 일을 하고 스킬은 시작할 때 전부 로드되므로, 리더가 task를 던질 때 그 task가 에이전트의 어느 일인지를 보고 그 task만 바꿔 던진다.
+
+| 에이전트 | 일의 종류 | 바꾸는 것 |
+|---|---|---|
+| `architect` | 구조 결정이 확정된 뒤의 설계 문서·로컬 실행·코드 규칙, as-is 추출 | `opus` |
+| `spec-writer` | 용어집, 레퍼런스·가이드 | `sonnet` · high |
+| `backend-developer`, `frontend-developer` | 원인을 모르는 버그·간헐 실패(`debugging`이 중심인 task) | `opus` · high |
+| 구현 에이전트 | 동시성·데이터 이전·보안 경계·금액 계산, 바닥 모듈 변경 | `opus` · high |
+| `critic`, `code-reviewer`, `security` 검토 | 대상을 만든 모델이 더 높다 | 대상을 만든 모델 |
+| `investigator` | 위치만 묻는 조회 | `haiku` |
+| 문서를 쓰는 에이전트 | 판단 없이 옮기는 일 | 한 단계 아래 |
+
+실패 뒤 재투입은 원인을 가른다. 읽지 않았거나 검증을 건너뛴 실패면 effort를 올리고, 다 읽고 시도했는데 틀렸으면 모델을 올린다. 표는 `orchestration`의 `references/dispatch.md` "모델과 effort" 절에 있고, 바꾼 값은 원장의 `model`·`effort` 필드(`ledger.py`의 `--model`, `--effort`)에 근거와 함께 남는다.
 
 리더(메인 세션)는 분할·판정·잇기를 전부 맡으므로 `opus` 이상으로 돌린다. 프로젝트에 맞추려면 에이전트 정의의 `model`·`effort`와 위 표를 고친다.
 

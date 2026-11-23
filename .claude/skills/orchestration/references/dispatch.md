@@ -184,24 +184,32 @@ run: <run>  task: <id>  대상: <target 문서 경로 또는 "계획">  round: <
 
 ## 모델과 effort
 
-에이전트 정의의 `model`과 `effort`가 기본값이다. 리더가 어떤 모델과 effort로 돌든 바뀌지 않는다. task가 아래 표에 걸리면 그 task만 `Agent`의 `model`, `effort`로 바꿔 던진다. 걸리지 않으면 둘 다 넘기지 않는다. 모델 단계는 `haiku` < `sonnet` < `opus` < `fable`, effort 단계는 `low` < `medium` < `high` < `xhigh` < `max`다.
+에이전트 정의의 `model`과 `effort`가 기본값이다. 리더가 어떤 모델과 effort로 돌든 바뀌지 않는다. 한 에이전트가 여러 종류의 일을 하고 호출 하나의 모델은 도중에 바뀌지 않으므로, task가 그 에이전트의 어느 일인지를 보고 던질 때 정한다. 아래 두 표에 걸리면 그 task만 `Agent`의 `model`, `effort`로 바꿔 던지고, 걸리지 않으면 둘 다 넘기지 않는다. 모델 단계는 `haiku` < `sonnet` < `opus` < `fable`, effort 단계는 `low` < `medium` < `high` < `xhigh` < `max`다.
+
+**일의 종류로 바꾸는 것.** 표에 없는 일은 기본값이다.
+
+| 에이전트 | 일의 종류 | 바꾸는 것 |
+|---|---|---|
+| architect | 구조 결정이 확정된 뒤의 문서(FSD마다의 설계 문서, 로컬 실행, 코드 규칙). 결정 없이 기존 저장소의 as-is만 추출하는 task | `opus` |
+| spec-writer | 용어집, 레퍼런스·가이드 | `sonnet`, `high` |
+| backend-developer, frontend-developer | 원인을 모르는 버그나 간헐 실패를 고친다. 재현이 없는 추정 버그도 여기다 | `opus`, `high` |
+| backend-developer, frontend-developer, devops | 동시성·잠금, 데이터 이전, 보안 경계, 금액 계산이 걸린 코드 | `opus`, `high` |
+| backend-developer, frontend-developer | 여러 모듈이 의존하는 바닥 모듈을 바꾸거나 소유 경로가 여러 모듈에 걸친다 | `opus`, `high` |
+| critic, code-reviewer, security(검토) | 대상을 만든 모델이 판정 에이전트의 기본값보다 높다 | 대상을 만든 모델 |
+| investigator | 파일·기호·설정 값의 위치만 묻는다 | `haiku` |
+| 문서를 쓰는 에이전트 | 판단 없이 옮기는 일(형식 지적 몰아 고치기, 이름 바꾸기, 정해진 값을 문서에 옮기기) | 모델 한 단계 아래 |
+
+**다시 던질 때 바꾸는 것.**
 
 | 상황 | 바꾸는 것 |
 |---|---|
-| architect가 구조 결정이 확정된 뒤 쓰는 문서(FSD마다의 설계 문서, 로컬 실행, 코드 규칙) | `opus` |
-| 원인을 모르는 버그나 간헐 실패를 고친다 | `opus`, `high` |
-| 동시성·잠금, 데이터 이전, 보안 경계, 금액 계산이 걸린 코드 | `opus`, `high` |
-| 여러 모듈이 의존하는 바닥 모듈을 바꾸거나 소유 경로가 여러 모듈에 걸친다 | `opus`, `high` |
 | `failed` 뒤 다시 투입한다. 원인이 건너뜀이다(입력 문서나 파일을 안 읽음, 테스트를 안 돌림, 검증 생략, 중간에 멈춤) | 모델은 그대로, effort 한 단계 위 |
 | `failed` 뒤 다시 투입한다. 입력을 다 읽고 시도했는데 틀렸다 | 모델 한 단계 위 |
 | 올려 돌린 task의 재작업 | 대상 task와 같은 모델과 effort |
-| 비평·코드 리뷰·보안 검토의 대상을 만든 모델이 판정 에이전트의 기본값보다 높다 | 대상을 만든 모델 |
-| 판단 없이 옮기는 일(형식 지적 몰아 고치기, 이름 바꾸기, 정해진 값을 문서에 옮기기) | 모델 한 단계 아래 |
-| investigator에게 파일·기호·설정 값의 위치만 묻는다 | `haiku` |
+| 그 모델을 쓸 수 없어 생성이 거부됐다 | 모델 한 단계 아래. 원장에 적는다 |
 
 - 둘 이상에 걸리면 높은 쪽을 쓴다.
-- 바꿔 던지는 task는 원장에 적는다. 분할 때 알면 `add --model <모델> --effort <단계>`, 다시 투입하면서 바꾸면 `set <id> running --model <모델> --effort <단계> --because "<걸린 상황>"`. `brief`가 `model`, `effort`를 내면 그 값을 `Agent`에 넘긴다.
-- 그 모델을 쓸 수 없어 생성이 거부되면 한 단계 아래로 던지고 원장에 적는다.
+- 바꿔 던지는 task는 원장에 적는다. 분할 때 알면 `add --model <모델> --effort <단계>`, 다시 투입하면서 바꾸면 `set <id> running --model <모델> --effort <단계> --because "<걸린 줄>"`. `brief`가 `model`, `effort`를 내면 그 값을 `Agent`에 넘긴다.
 - `SendMessage`로 되살린 에이전트의 모델과 effort는 그대로다. 새 인스턴스로 다시 던질 때는 원장의 값을 다시 넘긴다.
 
 ## 브리프를 쓸 때
