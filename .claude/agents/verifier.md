@@ -2,7 +2,7 @@
 name: verifier
 description: 테스트 계획과 테스트 케이스를 쓰고, 통합 검증과 전체 테스트 실행을 맡는 검증자. e2e 테스트 코드를 만들고 돌려 테스트 실행 보고를 남긴다. 애플리케이션 코드는 고치지 않고 결함을 finding 형식으로 보고한다.
 tools: Agent(investigator), Read, Grep, Glob, Bash, Write, Edit, WebFetch, WebSearch, mcp__context7, Skill, ToolSearch
-model: inherit
+model: sonnet
 skills:
   - task-execution
   - design-docs

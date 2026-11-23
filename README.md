@@ -97,6 +97,18 @@ Claude Code에서 **리더(메인 세션)가 `orchestration` 스킬로 사용자
 | `investigator` | 질문 하나에 `파일:줄` 근거를 붙여 200줄 이내로 답한다. 읽기 전용이고 누구나 부르며 위임의 종착점 | 없음 | 없음 |
 | `impact-analyst` | 바뀐 파일에서 의존·호출·계약·설정 키·데이터 형식을 따라가 다시 돌릴 시험 범위(부분/전체)를 정한다. 읽기 전용이고 리더가 부르는 보조라 원장에 task로 올리지 않는다 | `impact-analysis`, `completion-evidence` | 범위 파일 `_tasks/<run>/impact/` |
 
+### 모델
+
+에이전트마다 정의의 `model`에 기본 모델이 있다.
+
+| 기본 모델 | 에이전트 |
+|---|---|
+| 리더와 같은 모델(`inherit`) | `architect`, `spec-writer`, `contract-designer`, `security`, `critic`, `code-reviewer` |
+| `sonnet` | `researcher`, `ux-designer`, `backend-developer`, `frontend-developer`, `devops`, `verifier`, `doc-reviewer`, `impact-analyst` |
+| `haiku` | `investigator` |
+
+리더는 task의 상황을 보고 그 task만 모델을 바꿔 던진다. 실패 뒤 재투입, 원인을 모르는 버그, 동시성·데이터 이전·보안 경계·금액 계산, 바닥 모듈 변경은 리더의 모델로 올리고, 판단 없이 옮기는 일은 한 단계 내린다. 표는 `orchestration`의 `references/dispatch.md` "모델" 절에 있고, 바꾼 모델은 원장의 `model` 필드(`ledger.py add --model`, `set --model`)에 근거와 함께 남는다. 프로젝트에 맞추려면 에이전트 정의의 `model`과 이 표를 고친다.
+
 재작업 task는 원래 만든 에이전트가 같은 워크트리에서 맡는다. 서브에이전트는 `investigator`만 부르고, `investigator`는 아무도 부르지 않는다. 리더(메인 세션)는 원장·notes·run 보고서를 쓴다.
 
 라이브러리·프레임워크 문서는 context7 MCP 서버(도구 `mcp__context7__resolve-library-id`, `mcp__context7__query-docs`)로 읽는다. 모든 에이전트가 `tools`에 `mcp__context7`을 갖는다. 기억으로 API를 쓰지 않는다.

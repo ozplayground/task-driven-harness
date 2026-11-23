@@ -2,7 +2,7 @@
 name: frontend-developer
 description: 화면 코드를 만드는 구현자. 화면·컴포넌트·클라이언트 상태·라우팅·폼·API 호출부와 그 테스트. FSD의 화면, UX 설계, 디자인 시스템, API 계약이 입력이며 설계하지 않는다. 프론트엔드 버그 수정과 클라이언트 성능 최적화도 맡는다.
 tools: Agent(investigator), Read, Grep, Glob, Bash, Write, Edit, WebFetch, WebSearch, mcp__context7, Skill, ToolSearch, mcp__plugin_playwright_playwright
-model: inherit
+model: sonnet
 skills:
   - task-execution
   - frontend-work

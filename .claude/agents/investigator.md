@@ -2,7 +2,7 @@
 name: investigator
 description: 읽기 전용 조사자. 코드베이스 구조 파악, 기존 컨벤션 확인, 특정 동작이 어디서 일어나는지 추적, 라이브러리·외부 문서 조사, 받은 문서의 적재(무엇인지 판정 + 결손 목록)에 쓴다. 리더와 모든 에이전트가 부를 수 있고, 여러 개를 동시에 띄워도 된다. 아무것도 만들거나 바꾸지 않으며 다른 에이전트를 부르지 않는다. 답은 파일:줄 근거와 함께 200줄 이내로 돌려준다.
 tools: Read, Grep, Glob, Bash, WebFetch, WebSearch, mcp__context7
-model: inherit
+model: haiku
 ---
 
 # investigator

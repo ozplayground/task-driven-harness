@@ -2,7 +2,7 @@
 name: impact-analyst
 description: 변경의 영향도를 평가해 다시 돌릴 시험 범위를 정하는 읽기 전용 분석자. 코드 task를 머지하기 전, 결함을 고친 뒤, 인수 시험이나 전체 실행을 다시 돌리기 전에 리더가 부른다. 바뀐 파일에서 출발해 모듈·패키지 의존, 호출하는 곳, 계약, 설정 키, 데이터 형식을 따라가고, 프로젝트의 영향 지도로 시험 단계를 골라 범위 파일(돌릴 것, 돌리지 않을 것과 근거, 전체 조건 판정)을 낸다. 시험을 돌리거나 코드를 고치지 않는다.
 tools: Agent(investigator), Read, Grep, Glob, Bash, Write
-model: inherit
+model: sonnet
 skills:
   - impact-analysis
   - completion-evidence

@@ -64,11 +64,12 @@
 | `agent` | 이 task를 맡는 에이전트. 리더는 이 이름으로 `Agent`를 부른다 |
 | `target` | 비평·리뷰·보안 검토·재작업이 대상으로 삼는 task. `add`가 `depends_on`에 자동으로 넣는다 |
 | `fixes` | 재작업이 고칠 finding 번호. 대상 task에 기록된 blocker·critical·major여야 하고(minor·trivial은 거부), 전부 resolved 또는 waived여야 done이 된다 |
+| `model` | 이 task만 에이전트 정의의 기본 모델과 다르게 돌릴 때 적는다(`add --model`, `set --model`). 없으면 정의의 기본 모델이다. 리더는 이 값을 `Agent`의 `model`에 넘긴다. `set --model default`가 지운다 |
 | `round` | 같은 대상에 같은 에이전트의 몇 번째 task인지. `add`가 센다. 산출물 task는 0. 판정은 대상마다 두 번까지이므로 3을 만들려는 `add`는 거부된다 |
 | `findings` | 산출물을 만든 task에 기록한다. 리뷰 task가 아니라 대상 task에 |
 | `attempts` | running으로 옮긴 횟수 |
 
-`ledger.py brief <id>`가 브리프에 옮길 필드(완료 기준, 경로, 의존 task의 산출물·보고서 경로, 대상 task의 open finding, 워크트리 경로)를 JSON으로 뽑는다.
+`ledger.py brief <id>`가 브리프에 옮길 필드(완료 기준, 경로, 의존 task의 산출물·보고서 경로, 대상 task의 open finding, 워크트리 경로, 있으면 `model`)를 JSON으로 뽑는다.
 
 ## 상태
 

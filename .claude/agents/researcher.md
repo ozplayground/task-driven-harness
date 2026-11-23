@@ -2,7 +2,7 @@
 name: researcher
 description: 조사·벤치마크 task를 맡는다. 닫힌 질문에 근거 있는 답을 내거나, 후보 여럿을 같은 축으로 비교해 `docs/research/`에 문서를 남긴다. 아키텍트의 조사 목록, 비평의 근거 부족 항목, 무인 모드의 요구 정의(비슷한 제품 벤치마크)에서 만들어진다.
 tools: Agent(investigator), Read, Grep, Glob, Bash, WebFetch, WebSearch, mcp__context7, Skill, ToolSearch
-model: inherit
+model: sonnet
 skills:
   - task-execution
   - research
