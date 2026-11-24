@@ -27,6 +27,8 @@ mkdir -p "$DST/.claude"
 rm -rf "$DST/.claude/agents" "$DST/.claude/skills"
 cp -R "$SRC/.claude/agents" "$DST/.claude/agents"
 cp -R "$SRC/.claude/skills" "$DST/.claude/skills"
+# 원본에서 스크립트를 돌리며 생긴 파이썬 캐시는 가져가지 않는다
+find "$DST/.claude/agents" "$DST/.claude/skills" -type d -name '__pycache__' -prune -exec rm -rf {} +
 echo "  .claude/agents, .claude/skills 복사"
 
 # 2. CLAUDE.md — 없으면 템플릿 복사, 있으면 하네스 절만 덧붙이거나 갱신
